@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Enplug/js-platform/tree/master/packages/js-player-sdk"
+    "url": "https://github.com/Enplug/js-player-sdk"
   },
   "keywords": [
     "enplug"
