@@ -1,0 +1,297 @@
+<!doctype html>
+<html>
+<head>
+  <title>A Sample page for the Enplug JS Player SDK</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.js"></script>
+  <script src="./dist/enplug-player-sdk.bundle.js"></script>
+
+</head>
+<body>
+  <pre id="output" style="font-size:larger; padding: 15px;"></pre>
+
+  <script id="sample-js">
+    (function( enplug, faker ) {
+      'use strict';
+      // some helpers
+
+      // this log helper puts stuff in the <pre> tag above, every argument is put on a new line
+      var log = (function() {
+        var outElm = document.getElementById( 'output' );
+
+        return function() {
+          var
+            strings,
+            args = Array.prototype.slice.call( arguments, 0 );
+
+          strings = args.reduce( function( acc, next ) {
+            var type = typeof next;
+
+            if ( type === 'string' || type === 'number' || type === 'boolean' ) {
+              acc.push( next );
+            } else if ( Date.prototype.isPrototypeOf( next )) {
+              acc.push( next.toString());
+            } else {
+              acc.push(JSON.stringify( next ));
+            }
+
+            return acc;
+          }, []);
+
+          outElm.innerHTML += strings.join( '\n' ) + '\n\n';
+          outElm.scrollIntoView( false );
+        };
+      })();
+
+      // simple localStorage helper
+      var store = {
+        set: function( key, value ) {
+          if ( Date.prototype.isPrototypeOf( value )) {
+            value = value.toString();
+          }
+
+          if ( typeof value !== 'string' ) {
+            value = JSON.stringify( value );
+          }
+
+          return localStorage.setItem( key, value );
+        },
+        get: function( key ) {
+          var value = localStorage.getItem( key );
+
+          if ( (/^[\{"\[]/).test( value )) {
+            try {
+              value = JSON.parse( value );
+            } catch (e) {
+              log( 'trouble parsing assumed json from storage', e );
+            }
+          } else if ( (/^\d/).test( value )) {
+            value = parseFloat( value );
+          }
+
+          return value;
+        },
+        remove: function( key ) {
+          return localStorage.removeItem( key );
+        },
+        clear: function() {
+          return localStorage.clear();
+        }
+      };
+
+      // random integer generator
+      var randomInt = function( min, max ) {
+        return Math.floor( Math.random() * max ) + min;
+      };
+
+      // min to ms converter
+      var minInMilli = function( min ) {
+        return min * 60000;
+      };
+
+      // takes min/max minuets returns random milliseconds
+      var randomTimeout = function( min, max ) {
+        return randomInt( minInMilli( min ), minInMilli( max ));
+      };
+
+
+      /*****************
+       * events
+       ****************/
+      // destroy event stuff
+      var destroyStoreKey = 'ep-destroy';
+
+      (function( data ) {
+        if ( data == null ) {
+          log( 'looks like the first time I am running' );
+        } else {
+          log( 'found destroy data, this app has been destroyed ' + data.count + ' times, destroy timestamps to follow', data.times );
+        }
+      })( store.get( destroyStoreKey ));
+
+      // destroy event
+      enplug.on( 'destroy', function( done ) {
+        log( "I'm getting destroyed now bye bye...", done.toString());
+
+        var data = store.get( destroyStoreKey ) || { count: 0, times: []};
+
+        // record the times we have been destroyed
+        data.count += 1;
+        data.times.push(( new Date()).toString());
+
+        store.set( destroyStoreKey, data );
+        done();
+      });
+
+      enplug.on( 'clear-destroy-data', function() {
+        log( 'removing saved destroy count from local storage' );
+        store.remove( destroyStoreKey );
+      });
+
+      // extra test events
+      // todo use actual events
+      log( 'attaching "some-event" handler' );
+      enplug.on( 'some-event', function( event ) {
+        log( 'some-event was fired and handled, ', event );
+      });
+
+      log( 'attaching "some-event" one-time handler' );
+      enplug.once( 'some-event', function( event ) {
+        log( 'this handler only fires once', event );
+      });
+
+      log( 'attaching "some-event" on-off handler' );
+      var onOffHandler;
+      enplug.on( 'some-event', onOffHandler = function( event ) {
+
+        onOffHandler.callCount = (onOffHandler.callCount || 0) + 1;
+        log( 'the callCount of the onOffHandler was incremented to ' + onOffHandler.callCount, event );
+
+        if ( onOffHandler.callCount > 5 ) {
+          enplug.off( 'some-event', onOffHandler );
+          log( 'the onOffHandler was just removed', event );
+        }
+      });
+
+      /*****************
+       * notifications
+       ****************/
+      log( 'setting up timeout loop for notifications', new Date());
+      var notifyTimeout = (function() {
+        var
+            continueLoop = true,
+            count = 0;
+
+        // fire an event to stop notifications
+        enplug.once( 'stop-notifications', function() {
+          log( 'will no longer add new notifications (any timeouts yet to be run will still execute)' );
+          continueLoop = false;
+        });
+
+        return function() {
+          log( 'posting notification', new Date());
+          count += 1;
+
+          var notePromise = enplug.notifications.post( 'Hello Notification! ' + count );
+
+          (function( ogCount ) {
+            notePromise.then(function( id ) {
+              log( 'notification promise resolved', { count: ogCount, id: id });
+            });
+          })( count );
+
+          // reset count so it doesn't get crazy big
+          if ( count > 100 ) {
+            count = 0;
+          }
+
+          if ( continueLoop ) {
+            setTimeout( notifyTimeout, randomTimeout( 0.25, 1 ));
+          }
+        };
+      })();
+
+      // kick off event loop (posts every 15 to 60 seconds)
+      setTimeout( notifyTimeout, randomTimeout( 0.25, 1 ));
+
+      // so the Java can independently test notifications on demand
+      enplug.on( 'do-notification', function( event ) {
+        enplug.notifications.post( event.message || event.msg || 'Hello Notification from Event!' );
+      });
+
+
+      /*****************
+       * appStatus
+       ****************/
+      log( 'oh look an app has states!', enplug.appStatus.STATES );
+
+      // get interrupt then set to false,
+      // after one min set back to true
+      enplug.appStatus.canInterrupt.then(function( value ) {
+        log( 'initial can interrupt value "' + value + '" setting to false' );
+        return enplug.appStatus.setCanInterrupt( false );
+      })
+        // got new can interrupt value
+        .then(function( newValue ) {
+          log( 'saw new interrupt value after setting to false: ' + newValue );
+
+          // wait one min before setting back
+          setTimeout(function() {
+            log( 'setting can interrupt back to true' );
+
+            enplug.appStatus.setCanInterrupt( true )
+              .then(function( newestValue ) {
+                log( 'finished setting can interrupt back to true, ' + newestValue );
+              });
+          }, minInMilli( 1 ));
+        });
+
+      log( 'calling appStatus.start', new Date());
+      enplug.appStatus.start();
+
+      // send a 'do-hide' event to trigger hide()
+      enplug.on( 'do-hide', function() {
+        log( 'calling hide' );
+        enplug.appStatus.hide();
+      });
+
+      // send a 'do-error' event to trigger error()
+      enplug.on( 'do-error', function() {
+        log( 'calling error' );
+        enplug.appStatus.error();
+      });
+
+      // todo transition and render
+      setTimeout(function() {
+        enplug.appStatus.transition().then(function( something ) {
+          log( 'Called transition, promise resolved...', something, new Date());
+        });
+      }, minInMilli( 5 ));
+
+
+      /*****************
+       * settings
+       ****************/
+      log( 'These are the known transition types', enplug.settings.TRANSITIONS );
+
+      enplug.settings.is4K.then(function( value ) {
+        log( 'Is this a 4K display? ' + value ? 'yes' : 'no' );
+      });
+
+      enplug.settings.transitionType.then(function( value ) {
+        log( 'What is the current transition type? ' + value );
+      });
+
+      enplug.settings.whitelabel.then(function( value ) {
+        log( 'What is the whitelabel value? ' + value );
+      });
+
+      log( "Why don't we hide the whitelabel for now..." );
+      enplug.settings.hideWhitelabel().then(function( worked ) {
+        log( 'Hiding the whitelabel ' + worked ? 'worked' : 'did not work' );
+      });
+
+
+      /*****************
+       * assets
+       ****************/
+      log( 'Getting next asset', new Date());
+      enplug.assets.getNext().then(function( asset ) {
+        log( 'asset promise resolved with asset: ', asset, new Date());
+      });
+
+      log( 'Getting asset list', new Date());
+      enplug.assets.getList().then(function( asset ) {
+        log( 'asset list promise resolved with assets: ', asset, new Date());
+      });
+
+      /*****************
+       * playRecorder
+       ****************/
+      log( 'Recording 60 second play time of "some-ref-id"', new Date());
+      enplug.playRecorder.report( 'some-ref-id', 60, 'some additional info' );
+
+    })( window.enplug, window.faker );
+  </script>
+</body>
+</html>
