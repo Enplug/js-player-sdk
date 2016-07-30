@@ -18,18 +18,21 @@
   ],
   "config": {
     "bundle_output_name": "enplug-player-sdk.bundle.js",
-    "bundle_tests_output_name": "enplug-player-sdk-tests.bundle.js"
+    "bundle_tests_output_name": "enplug-player-sdk-tests.bundle.js",
+    "bundle_mocks_output_name": "enplug-player-sdk.mocks.bundle.js"
   },
   "scripts": {
     "lint": "eslint .",
     "clean": "rimraf 'dist' ; mkdir -p dist",
     "precompile": "npm run clean",
+    "mocks": "globify 'tests/mocks/**/*.js' -o dist/$npm_package_config_bundle_mocks_output_name -t [ babelify ]",
     "bundle": "browserify src/api.js -o dist/$npm_package_config_bundle_output_name -t [ babelify ] -s enplug",
     "es5": "babel src --plugins transform-runtime --out-dir dist/es5",
     "compile": "npm-run-all -s bundle es5",
+    "watch:mocks": "globify 'tests/mocks/**/*.js' --watch -o dist/$npm_package_config_bundle_mocks_output_name -t [ babelify ]",
     "watch:bundle": "watchify src/api.js -o dist/$npm_package_config_bundle_output_name -t [ babelify ] -s enplug",
     "watch:es5": "babel src --watch --plugins transform-runtime --out-dir dist/es5",
-    "watch": "npm-run-all -p watch:bundle watch:es5",
+    "watch": "npm-run-all -p watch:bundle watch:es5 watch:mocks",
     "test": "tape -r babel-register 'tests/**/*.js' | tap-spec",
     "test:bundle": "globify 'tests/**/*.js' -o dist/$npm_package_config_bundle_tests_output_name -t [ babelify ]",
     "tdd": "nodemon -q -d 200 -i dist -w src -w tests -x 'npm test'",
