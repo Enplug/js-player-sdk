@@ -5,14 +5,7 @@
   </head>
   <body>
     <h1>Look to the Console</h1>
-    <script>
-      // this can be replaced with mocks once finished
-      window._epBridge = window._epBridge || {
-        send: function( arg ) {
-          console.log( 'message sent: %o', arg );
-        }
-      };
-    </script>
+    <script src="../dist/enplug-player-sdk-mocks.bundle.js"></script>
     <script src="../dist/enplug-player-sdk-tests.bundle.js"></script>
   </body>
 </html>
