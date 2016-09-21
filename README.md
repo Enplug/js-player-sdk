@@ -1,7 +1,8 @@
-# @enplug/player-sdk
+# Enplug Dashboard SDK
 
-> The Enplug JavaScript Player App SDK
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Enplug/dashboard-sdk/blob/master/LICENSE)
 
+The official Enplug JavaScript SDK for the player interface of apps built for Enplug displays.
 
 <!---
 // TODOS
