@@ -1,4 +1,4 @@
-# Enplug Dashboard SDK
+# Enplug Player SDK
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Enplug/dashboard-sdk/blob/master/LICENSE)
 
