@@ -47,44 +47,31 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 `npm test`
 
 ## API Reference
-### Events
+## Events
 [Enplug JS Player SDK Events API](https://developers.enplug.com/api-reference/javascript-player-api/events/)
 
-### Notifications
+## Notifications
 [Enplug JS Player SDK Notifications API](https://developers.enplug.com/api-reference/javascript-player-api/notifications/)
 
-### Application Status
+## Application Status
 [Enplug JS Player SDK App Status API](https://developers.enplug.com/api-reference/javascript-player-api/application-status/)
 
-### Assets
+## Assets
 [Enplug JS Player SDK Assets API](https://developers.enplug.com/api-reference/javascript-player-api/assets/)
 
-### Settings
+## Settings
 [Enplug JS Player SDK Settings API](https://developers.enplug.com/api-reference/javascript-player-api/settings/)
 
-### Play Recorder
-[Enplug JS Player SDK Play Recorder API](https://developers.enplug.com/api-reference/javascript-player-api/play-recorder/)
+## Play Recorder
+The Play Recorder API can be used to record how long a particular screen was shown on a display. An example would be recording how long an advertisement was displayed on screen to properly pay the screen provider.
+
+### `.enplug.playRecorder.report( referenceId, playDuration[, additionalInfo ])`
+The report function can be used to record the time that an item was displayed. The reference id is used to identify the item for which you are reporting. The play duration is a Number value representing the number of seconds the item was displayed. If you wish to store some additional information, it can be passed as a string as an optional third argument to the report function.
+
+- **referenceId:** A unique identifier to track which asset we are recording a play time for.
+- **playDuration:** A time in seconds that represents how long this item was displayed.
+- **additionalInfo:** A optional string of extra information to be saved with the recorded value.
 
 ## License
-MIT License
-
-Copyright (c) 2016 Enplug
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This SDK is distributed under the MIT License, see [LICENSE](https://github.com/Enplug/dashboard-sdk/blob/master/LICENSE) for more information.
 
