@@ -59,8 +59,43 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 ## Assets
 [Enplug JS Player SDK Assets API](https://developers.enplug.com/api-reference/javascript-player-api/assets/)
 
+
 ## Settings
-[Enplug JS Player SDK Settings API](https://developers.enplug.com/api-reference/javascript-player-api/settings/)
+The Settings API can be used to retrieve various settings that were set by the user of the Enplug Player your application is currently playing on.
+
+### `.enplug.settings.is4k {Promise<Boolean>}`
+This Promise property can be checked to know if the Enplug Player is connected to a 4K display so you can update your application accordingly, possibly with high resolution graphics or different font settings, etc.
+```js
+enplug.settings.is4K.then(function( is4K ) {
+  // is4K will be:
+  //   true when connected to a 4K display
+  //   false when connected to a non-4K display
+});
+```
+
+### `.enplug.settings.transitionType {Promise<String>}`
+This Promise property will resolve to a String value as listed in the code sample below. This value can be referenced if you wish to match the animations used by the Enplug Player to transition between applications.
+
+```js
+enplug.settings.transitionType.then(function( type ) {
+  // type will be a string and one of the following
+  //  'SLIDE_LEFT'
+  //  'SLIDE_RIGHT'
+  //  'SLIDE_DOWN'
+  //  'SLIDE_UP'
+  //  'FADE'
+  //  'NONE'
+});
+```
+
+### `.enplug.settings.whitelabel {Promise<String>}`
+Many Enplug apps show a small white label overlay at the bottom of the display. This can be customized for certain users. This property can be checked to get the value of the white label as set for given Enplug Player.
+
+```js
+enplug.settings.whitelabel.then(function( value ) {
+  // here value will be a string representing the white label for this display
+});
+```
 
 ## Play Recorder
 The Play Recorder API can be used to record how long a particular screen was shown on a display. An example would be recording how long an advertisement was displayed on screen to properly pay the screen provider.
