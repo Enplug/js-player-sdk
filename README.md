@@ -57,8 +57,15 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 [Enplug JS Player SDK App Status API](https://developers.enplug.com/api-reference/javascript-player-api/application-status/)
 
 ## Assets
-[Enplug JS Player SDK Assets API](https://developers.enplug.com/api-reference/javascript-player-api/assets/)
+The Asset API for Enplug Player is the way to get assets previously created by Dashboard API.
 
+### `enplug.assets.getList() : Promise<Array<Object>>`
+If you wish to consume a group of assets at once the getList function can be called to return an Array of all assets configured for given player.
+Returns a Promise that resolves to an Array of asset value objects.
+
+### `enplug.assets.getNext() : Promise<Object>`
+Iterates through the list of asset values defined in the Dashboard part of your application for this display. Each time when called will get the next asset in the list of assets.
+Returns a promise that resolves to the single asset value (an Object).
 
 ## Settings
 The Settings API can be used to retrieve various settings that were set by the user of the Enplug Player your application is currently playing on.
