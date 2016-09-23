@@ -48,7 +48,41 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 
 ## API Reference
 ## Events
-[Enplug JS Player SDK Events API](https://developers.enplug.com/api-reference/javascript-player-api/events/)
+The Event API for Player Apps has methods for adding and removing event handlers. Events include system events as well as custom app events generated via push notifications. The JavaScript Player SDK has a few events that are fired during specific moments of the application life-cycle. Below you can find the various events and what to expect to be passed to the event handler.
+
+###‘destroy’ Event
+The “destroy” event is fired anytime the application is going to be disposed by the player. When developing a player application with the JavaScript SDK you should be prepared for your app to destroyed anytime it is taken off of the display. The player will fire the “destroy” event and then wait for a small amount of time to allow you to do any cleanup. To notify the player you are done with any final processes a callback is passed to the event handler. If you do not call the callback, your app will still be removed once the allotted cleanup time has passed. Every JavaScript Player application should attach a handler, if only to call the done callback.
+
+```js
+enplug.on( 'destroy', function( done ) {
+  // maybe save some state information
+  localStorage.setItem( 'last-viewed', view.id );
+
+  done(); // ok! I'm ready to be destroyed...
+});
+```
+
+### `enplug.on( eventName, handler ) : undefined`
+The on function can be used to attach a new handler for a specific event by that event’s name. If you wish to remove this event handler at any time you will need to keep a reference to the handler function and pass it into the off function (described below).
+
+- **eventName:** The name of the event the handler should be bound to.
+- **handler:** The function to handle incoming events of type “eventName”.
+
+### `enplug.off( eventName, handler ) : undefined`
+The off function is used to remove existing event handlers. It is important to note that a reference to the original event handler must be passed to off for the handler to be removed.
+
+- **eventName:** The name of the event this handler is bound to.
+- **handler:** The original function bound to the event.
+
+### `enplug.once( eventName, handler ) : undefined`
+The once function is a connivence function for adding an event handler that gets automatically removed after the first time it is fired. The code below is the functional equivalent of the once function’s functionality.
+
+```js
+function handler( eventData ) {
+  enplug.off( 'my-event', handler );
+}
+enplug.on( 'my-event', handler );
+```
 
 ## Notifications
 The notifications API is for launching alerts to the Enplug Player. You may have noticed these types of alerts created by the Enplug Social App when new posts are received by the Player. A notification consists of an icon and a message. It is important to note that if the user has disabled alerts for their display your notifications will be automatically suppressed by the Enplug Player.
