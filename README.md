@@ -59,7 +59,49 @@ The post function will take a single argument, the message to display. The messa
 - **message:** The message to display in the notification.
 
 ## Application Status
-[Enplug JS Player SDK App Status API](https://developers.enplug.com/api-reference/javascript-player-api/application-status/)
+The App Status API is for telling the player what state your application is currently in. Most of these functions relate to the application’s life-cycle.
+
+### `enplug.appStatus.start() : Promise<Boolean>`
+When an app is first started by the Enplug Player it will not be shown on screen until it explicitly tells the player that it is **ready to be rendered**. Note that initially apps are loaded off screen so they can be given time to properly initialize. When you have set up your application and are ready to be shown on the Enplug Player call the **start** function to be entered into the current rotation of active Player Applications.
+Returns a Promise that resolves to true if the operation has completed successfully.
+
+### `enplug.appStatus.error() : Promise<Boolean>`
+It is important to notify the player if your application has reached an unresolvable error. Calling the error function will notify the Enplug Player that your application is not operating properly and should be removed from the current rotation of Player Applications. Calling error will typically end up with your application being disposed and destroyed from working memory.
+Returns a Promise that resolves to true if the operation has completed successfully.
+
+### `enplug.appStatus.transition() : Promise<Boolean>`
+The transition function is for delegating transition animations to the built in native player animations. In watching an Enplug Player run you will notice a consistent transition between applications. To enable this style transition within your application use the transition function. Calling transition will cause the Enplug Player to pause rendering of you application while still showing the last state on screen. A new instance of your application will be created while the old one is destroyed. Once you call start in the new application, the Enplug Player will preform a transition from the “previous” state that is currently on screen to the new state currently rendered by the application.
+Returns a Promise that resolves to true when the app has entered the transition state.
+
+### `enplug.appStatus.hide() : Promise<Boolean>`
+If ever you want to immediately hide your application the hide function can be called to do so. Calling this function will hide your application until it comes up in the normal application rotation cycle. If you app is the only app playing on the display it will not be hidden.
+A Promise that resolves to true when the app has been hidden from the screen.
+
+### `enplug.appStatus.setCanInterrupt( boolean ) : Promise`
+Sometimes your app will be displaying a video or some other content that should not be interrupted. If you wish to stop the Enplug Player from replacing your app on screen use the canInterrupt property and setCanInterrupt function of the enplug.appStatus object. The canInterrupt property is returned as a promise resolving to a boolean value. The setCanInterrupt function takes the new boolean value and returns a Promise resolving to the new value. It is safe to assume that this value takes hold as soon as it is set. Typically you will only set the value when needed.
+
+```js
+myVideo.addEventListener( 'play', function( playEvent ) {
+  enplug.appStatus.setCanInterrupt( false ); // returns a Promise
+});
+
+myVideo.addEventListener( 'ended', function( endEvent ) {
+  enplug.appStatus.setCanInterrupt( true ); // returns a Promise
+});
+
+myVideo.play();
+```
+
+### `enplug.appStatus.canInterrupt: Promise<Boolean>`
+Checks the current state of canInterrupt property. Returns promise resolving to true if the app had requested not to be interrupted and false otherwise.
+
+```js
+enplug.appStatus.canInterrupt.then(function( canInterrupt ) {
+  // here the value of canInterrupt will be true or false
+  // depending on the previously set value
+  // this value always initializes as true
+});
+```
 
 ## Assets
 The Asset API for Enplug Player is the way to get assets previously created by Dashboard API.
