@@ -51,7 +51,12 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 [Enplug JS Player SDK Events API](https://developers.enplug.com/api-reference/javascript-player-api/events/)
 
 ## Notifications
-[Enplug JS Player SDK Notifications API](https://developers.enplug.com/api-reference/javascript-player-api/notifications/)
+The notifications API is for launching alerts to the Enplug Player. You may have noticed these types of alerts created by the Enplug Social App when new posts are received by the Player. A notification consists of an icon and a message. It is important to note that if the user has disabled alerts for their display your notifications will be automatically suppressed by the Enplug Player.
+
+### `enplug.notifications.post( message ) : Promise<NotificationId>`
+The post function will take a single argument, the message to display. The message should be as simple as possible to keep the notification short and sweet. The icon used when registering the application in the Enplug App Store will be used as the icon for the notification.
+
+- **message:** The message to display in the notification.
 
 ## Application Status
 [Enplug JS Player SDK App Status API](https://developers.enplug.com/api-reference/javascript-player-api/application-status/)
@@ -60,7 +65,7 @@ See the current documentation at: https://developers.enplug.com/api-reference/ja
 The Asset API for Enplug Player is the way to get assets previously created by Dashboard API.
 
 ### `enplug.assets.getList() : Promise<Array<Object>>`
-If you wish to consume a group of assets at once the getList function can be called to return an Array of all assets configured for given player.
+The getList function can be called to return an Array of all assets configured for given player.
 Returns a Promise that resolves to an Array of asset value objects.
 
 ### `enplug.assets.getNext() : Promise<Object>`
