@@ -64,6 +64,7 @@ try {
     '_epBridge does not exist on global object. Failing stack follows.'
   );
   console.error( error.stack );
+  console.info('Initializeing Development Player.')
 
   console.log( '[Enplug SDK] Creating debug send shim.' );
   epBridge = {
