@@ -14,6 +14,7 @@ Message Formatting: (as JSON string)
 
 import { processEvent } from './events';
 import EnplugError from './errors/EnplugError';
+import EpBridge from './ep-bridge';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = ( 60 * 1000 );
@@ -64,25 +65,9 @@ try {
     '_epBridge does not exist on global object. Failing stack follows.'
   );
   console.error( error.stack );
-  console.info('Initializeing Development Player.')
 
-  console.log( '[Enplug SDK] Creating debug send shim.' );
-  epBridge = {
-    send( message ) {
-      var msg = message;
-
-      if ( typeof message === 'string' ) {
-        try {
-          msg = JSON.parse( message );
-        } catch ( err ) {
-          msg = message;
-        }
-      }
-
-      console.warn( 'Failing for send call with message: %o', msg );
-//      console.error(( new EnplugError( 'Enplug Bridge was never initialized' )).stack );
-    }
-  };
+  console.info('Initializing Web Development Player.')
+  epBridge = new EpBridge();
 }
 
 

@@ -26,10 +26,14 @@ var _EnplugError = require('./errors/EnplugError');
 
 var _EnplugError2 = _interopRequireDefault(_EnplugError);
 
+var _epBridge2 = require('./ep-bridge');
+
+var _epBridge3 = _interopRequireDefault(_epBridge2);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // todo finish reject timeout
-/*global _epBridge  _epBridgeSend*/
+var RESPONSE_TIMEOUT = 60 * 1000; /*global _epBridge  _epBridgeSend*/
 
 /*
 Message Formatting: (as JSON string)
@@ -41,8 +45,6 @@ Message Formatting: (as JSON string)
 	token: ‘string’           // required when a response is expected (internal use only)
 }
  */
-
-var RESPONSE_TIMEOUT = 60 * 1000;
 
 var epBridge,
 
@@ -88,25 +90,9 @@ try {
 } catch (error) {
   console.error('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
   console.error(error.stack);
-  console.info('Initializeing Development Player.');
 
-  console.log('[Enplug SDK] Creating debug send shim.');
-  epBridge = {
-    send: function send(message) {
-      var msg = message;
-
-      if (typeof message === 'string') {
-        try {
-          msg = JSON.parse(message);
-        } catch (err) {
-          msg = message;
-        }
-      }
-
-      console.warn('Failing for send call with message: %o', msg);
-      //      console.error(( new EnplugError( 'Enplug Bridge was never initialized' )).stack );
-    }
-  };
+  console.info('Initializing Web Development Player.');
+  epBridge = new _epBridge3.default();
 }
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
