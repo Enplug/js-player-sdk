@@ -32,11 +32,11 @@ export default class EpBridge {
      * @param {string} msg.payload
      */
     send(msg) {
-        if (typeof message === 'string') {
+        if (typeof msg === 'string') {
             try {
-                msg = JSON.parse(message);
+                msg = JSON.parse(msg);
             } catch (err) {
-                msg = message;
+                msg = msg;
             }
         }
 

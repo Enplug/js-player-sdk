@@ -1,3 +1,7 @@
+/**
+ * @author Michal Drewniak (michal@enplug.com)
+ */
+
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -12,15 +16,26 @@ var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
+var _player = require('./player');
+
+var _player2 = _interopRequireDefault(_player);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * A mapping of service names to appropriate player function.
+ * @type {Object}
+ */
 var Service = {
-    'get-next': ''
+    'get-next': 'enplug.assets.getNext',
+    'get-list': 'enplug.assets.getList'
 };
 
 var EpBridge = function () {
     function EpBridge() {
         (0, _classCallCheck3.default)(this, EpBridge);
+
+        this.player = new _player2.default();
     }
 
     /**
@@ -36,17 +51,16 @@ var EpBridge = function () {
     (0, _createClass3.default)(EpBridge, [{
         key: 'send',
         value: function send(msg) {
-            console.log('Sending message: ', msg);
-
-            if (typeof message === 'string') {
+            if (typeof msg === 'string') {
                 try {
-                    msg = JSON.parse(message);
+                    msg = JSON.parse(msg);
                 } catch (err) {
-                    msg = message;
+                    msg = msg;
                 }
             }
 
-            console.warn('Failing for send call with message: %o', msg);
+            console.log('Sending message: ', msg);
+            this.player.processMessage(msg);
         }
     }]);
     return EpBridge;
