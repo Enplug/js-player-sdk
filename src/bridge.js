@@ -73,18 +73,10 @@ try {
   };
 
   window.addEventListener('message', function(event) {
+    console.log('Data received from the Player', event.data);
     epBridge.receive(event.data);
   });
 }
-
-
-// /**
-//  * Proxy send function to communicate with the Web Player.
-//  * @return {[type]} [description]
-//  */
-// epBridge.send = epBridge.send || function (msg) {
-//   parent.postMessage(msg, 'http://player.enplug.loc');
-// }
 
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
