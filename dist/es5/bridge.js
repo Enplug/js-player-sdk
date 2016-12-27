@@ -26,14 +26,10 @@ var _EnplugError = require('./errors/EnplugError');
 
 var _EnplugError2 = _interopRequireDefault(_EnplugError);
 
-var _epBridge2 = require('./ep-bridge');
-
-var _epBridge3 = _interopRequireDefault(_epBridge2);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // todo finish reject timeout
-var RESPONSE_TIMEOUT = 60 * 1000; /*global _epBridge  _epBridgeSend*/
+/*global _epBridge  _epBridgeSend*/
 
 /*
 Message Formatting: (as JSON string)
@@ -45,6 +41,8 @@ Message Formatting: (as JSON string)
 	token: ‘string’           // required when a response is expected (internal use only)
 }
  */
+
+var RESPONSE_TIMEOUT = 60 * 1000;
 
 var epBridge,
 
@@ -88,12 +86,32 @@ try {
     }
   })();
 } catch (error) {
-  console.error('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
-  console.error(error.stack);
+  console.warn('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
+  console.warn(error.stack);
 
+  // epBridge was not found. In such case, we assume that the application is iframed within 
+  // WebPlayer and communication has to proceed via posting and receiving messages between windows.
+  // TODO(michal): generalize hardcoded player.enplug.loc URL.
   console.info('Initializing Web Development Player.');
-  epBridge = new _epBridge3.default();
+  epBridge = {
+    send: function send(msg) {
+      return parent.postMessage(msg, 'http://player.enplug.loc');
+    }
+  };
+
+  window.addEventListener('message', function (event) {
+    epBridge.receive(event.data);
+  });
 }
+
+// /**
+//  * Proxy send function to communicate with the Web Player.
+//  * @return {[type]} [description]
+//  */
+// epBridge.send = epBridge.send || function (msg) {
+//   parent.postMessage(msg, 'http://player.enplug.loc');
+// }
+
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
 // global fn for Java bridge to call

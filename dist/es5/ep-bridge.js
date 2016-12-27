@@ -4,6 +4,9 @@
 
 'use strict';
 
+// import Player from './player/player';
+
+
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -16,26 +19,13 @@ var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
-var _player = require('./player');
-
-var _player2 = _interopRequireDefault(_player);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * A mapping of service names to appropriate player function.
- * @type {Object}
- */
-var Service = {
-    'get-next': 'enplug.assets.getNext',
-    'get-list': 'enplug.assets.getList'
-};
 
 var EpBridge = function () {
     function EpBridge() {
         (0, _classCallCheck3.default)(this, EpBridge);
 
-        this.player = new _player2.default();
+        this.player = new Player();
     }
 
     /**
@@ -51,6 +41,8 @@ var EpBridge = function () {
     (0, _createClass3.default)(EpBridge, [{
         key: 'send',
         value: function send(msg) {
+            var _this = this;
+
             if (typeof msg === 'string') {
                 try {
                     msg = JSON.parse(msg);
@@ -60,7 +52,9 @@ var EpBridge = function () {
             }
 
             console.log('Sending message: ', msg);
-            this.player.processMessage(msg);
+            this.player.processMessage(msg).then(function (data) {
+                return _this.receive(data);
+            });
         }
     }]);
     return EpBridge;

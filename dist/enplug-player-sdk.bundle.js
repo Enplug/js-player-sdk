@@ -93,10 +93,6 @@ var _EnplugError = require('./errors/EnplugError');
 
 var _EnplugError2 = _interopRequireDefault(_EnplugError);
 
-var _epBridge2 = require('./ep-bridge');
-
-var _epBridge3 = _interopRequireDefault(_epBridge2);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // todo finish reject timeout
@@ -144,12 +140,32 @@ try {
     }
   })();
 } catch (error) {
-  console.error('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
-  console.error(error.stack);
+  console.warn('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
+  console.warn(error.stack);
 
+  // epBridge was not found. In such case, we assume that the application is iframed within 
+  // WebPlayer and communication has to proceed via posting and receiving messages between windows.
+  // TODO(michal): generalize hardcoded player.enplug.loc URL.
   console.info('Initializing Web Development Player.');
-  epBridge = new _epBridge3.default();
+  epBridge = {
+    send: function send(msg) {
+      return parent.postMessage(msg, 'http://player.enplug.loc');
+    }
+  };
+
+  window.addEventListener('message', function (event) {
+    epBridge.receive(event.data);
+  });
 }
+
+// /**
+//  * Proxy send function to communicate with the Web Player.
+//  * @return {[type]} [description]
+//  */
+// epBridge.send = epBridge.send || function (msg) {
+//   parent.postMessage(msg, 'http://player.enplug.loc');
+// }
+
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
 // global fn for Java bridge to call
@@ -277,7 +293,7 @@ exports.default = {
   }
 };
 
-},{"./ep-bridge":5,"./errors/EnplugError":6,"./events":7}],4:[function(require,module,exports){
+},{"./errors/EnplugError":5,"./events":6}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -329,76 +345,7 @@ exports.settings = _settings2.default;
 exports.assets = _assets2.default;
 exports.playRecorder = _playRecorder2.default;
 
-},{"./assets":2,"./events":7,"./notifications":10,"./play-recorder":11,"./settings":13,"./status":14}],5:[function(require,module,exports){
-/**
- * @author Michal Drewniak (michal@enplug.com)
- */
-
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _player = require('./player');
-
-var _player2 = _interopRequireDefault(_player);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * A mapping of service names to appropriate player function.
- * @type {Object}
- */
-var Service = {
-    'get-next': 'enplug.assets.getNext',
-    'get-list': 'enplug.assets.getList'
-};
-
-var EpBridge = function () {
-    function EpBridge() {
-        _classCallCheck(this, EpBridge);
-
-        this.player = new _player2.default();
-    }
-
-    /**
-     * Sends a request to the server.
-     * @param  {Object} msg
-     * @param {string} msg.action
-     * @param {string} msg.service
-     * @param {string} msg.token
-     * @param {string} msg.payload
-     */
-
-
-    _createClass(EpBridge, [{
-        key: 'send',
-        value: function send(msg) {
-            if (typeof msg === 'string') {
-                try {
-                    msg = JSON.parse(msg);
-                } catch (err) {
-                    msg = msg;
-                }
-            }
-
-            console.log('Sending message: ', msg);
-            this.player.processMessage(msg);
-        }
-    }]);
-
-    return EpBridge;
-}();
-
-exports.default = EpBridge;
-;
-
-},{"./player":12}],6:[function(require,module,exports){
+},{"./assets":2,"./events":6,"./notifications":9,"./play-recorder":10,"./settings":11,"./status":12}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -437,7 +384,7 @@ EnplugError.prototype = Object.create(Error.prototype, {
 // export the constructor
 exports.default = EnplugError;
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -473,7 +420,7 @@ exports.default = events;
 exports.eventProcessor = eventProcessor;
 exports.processEvent = processEvent;
 
-},{"./lib/event-emitter":8,"./lib/event-transform":9}],8:[function(require,module,exports){
+},{"./lib/event-emitter":7,"./lib/event-transform":8}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -578,7 +525,7 @@ var typeCheckArgs = function typeCheckArgs(eventName, handler) {
  * @returns {EventEmitter} -- a factory for creating an event emitter like object
  */
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -649,7 +596,7 @@ exports.default = function () {
   };
 };
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -677,7 +624,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":3}],11:[function(require,module,exports){
+},{"./bridge":3}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -715,87 +662,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":3}],12:[function(require,module,exports){
-/**
- * Web Development Player.
- * @author Michal Drewniak (michal@enplug.com)
- */
-
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Player = function () {
-    function Player() {
-        _classCallCheck(this, Player);
-
-        /**
-         * Mapping of message services and actions to the Player method.
-         * @type {Object}
-         */
-        this.enplug = {
-            asset: {
-                'get-list': this.getList,
-                'get-next': this.getNext
-            }
-        };
-    }
-
-    /**
-     * 
-     */
-
-
-    _createClass(Player, [{
-        key: 'processMessage',
-        value: function processMessage(msg) {
-            try {
-                this.enplug[msg.service][msg.action].call(this, msg.token, msg.payload);
-            } catch (e) {
-                console.error(e);
-                console.error('Unable to send message. Message appropriate for service name:', msg.service, 'and action:', msg.action, 'not found in', this.enplug);
-            }
-        }
-
-        // Assets //
-
-        /**
-         * The getList function can be called to return an Array of all assets configured for given 
-         * player. 
-         * @return {Promise.<Array>} - A Promise that resolves to an Array of asset value objects.
-         */
-
-    }, {
-        key: 'getList',
-        value: function getList(token) {
-            console.log('enplug.assets.getList');
-        }
-
-        /**
-         * Iterates through the list of asset values defined in the Dashboard part of your application 
-         * for this display. Each time when called will get the next asset in the list of assets. 
-         * @return {Promise} - A Promise that resolves to the single asset value (an Object).
-         */
-
-    }, {
-        key: 'getNext',
-        value: function getNext(token) {
-            console.log('enplug.assets.getNext');
-        }
-    }]);
-
-    return Player;
-}();
-
-exports.default = Player;
-
-},{}],13:[function(require,module,exports){
+},{"./bridge":3}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -868,7 +735,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":3}],14:[function(require,module,exports){
+},{"./bridge":3}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -969,5 +836,5 @@ exports.default = {
   }
 };
 
-},{"./bridge":3,"./events":7}]},{},[1])(1)
+},{"./bridge":3,"./events":6}]},{},[1])(1)
 });
