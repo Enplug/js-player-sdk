@@ -73,7 +73,6 @@ try {
   };
 
   window.addEventListener('message', function(event) {
-    console.log('Data received from the Player', event.data);
     epBridge.receive(event.data);
   });
 }

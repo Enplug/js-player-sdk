@@ -100,7 +100,6 @@ try {
   };
 
   window.addEventListener('message', function (event) {
-    console.log('Received', event.data);
     epBridge.receive(event.data);
   });
 }
@@ -108,7 +107,6 @@ try {
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
 // global fn for Java bridge to call
 epBridge.receive = function (json) {
-  console.log('recevied and parsing', json);
   try {
     var isError = void 0,
         _JSON$parse = JSON.parse(json),
