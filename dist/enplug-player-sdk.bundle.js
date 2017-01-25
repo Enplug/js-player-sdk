@@ -143,7 +143,7 @@ try {
   console.warn('[Enplug SDK] Error initializing SDK: ' + '_epBridge does not exist on global object. Failing stack follows.');
   console.warn(error.stack);
 
-  // epBridge was not found. In such case, we assume that the application is iframed within 
+  // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
   // TODO(michal): generalize hardcoded player.enplug.loc URL.
   console.info('Initializing Web Development Player.');
@@ -156,6 +156,8 @@ try {
   window.addEventListener('message', function (event) {
     epBridge.receive(event.data);
   });
+
+  epBridge.send('PAIRING');
 }
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
@@ -172,6 +174,8 @@ epBridge.receive = function (json) {
         meta = _JSON$parse$meta === undefined ? {} : _JSON$parse$meta,
         token = _JSON$parse.token;
 
+
+    console.debug('Received', service, action, payload, meta, token);
 
     isError = action === 'error';
 
