@@ -150,18 +150,19 @@ try {
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
-    try {
-        var queryIndex = window.location.href.indexOf('?');
-        var appUrl = window.location.href.slice(0, queryIndex);
-        epBridge = {
-            send: function send(msg) {
-                msg.appUrl = appUrl;
-                return parent.postMessage(msg, 'http://player.enplug.loc');
-            }
-        };
-    } catch (error) {
-        console.error(error);
-    }
+    console.debug('urls stuff');
+    var queryIndex = window.location.href.indexOf('?');
+    console.debug('queryindex', queryIndex);
+    var appUrl = window.location.href.slice(0, queryIndex);
+    console.debug('appurl', appUrl);
+    epBridge = {
+        send: function send(msg) {
+            console.debug('assigning appurl to msg', msg);
+            msg.appUrl = appUrl;
+            console.debug('assigned. sending msg', msg);
+            parent.postMessage(msg, 'http://player.enplug.loc');
+        }
+    };
 
     window.addEventListener('message', function (event) {
         epBridge.receive(event.data);
