@@ -1,6 +1,6 @@
 {
   "name": "@enplug/player-sdk",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "license": "MIT",
   "description": "The JavaScript SDK for Enplug Player Apps",
   "main": "index.js",
