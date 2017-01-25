@@ -147,9 +147,14 @@ try {
     // WebPlayer and communication has to proceed via posting and receiving messages between windows.
     // TODO(michal): generalize hardcoded player.enplug.loc URL.
     console.info('Initializing Web Development Player.');
-    console.debug('window', window, window.location.href, localStorage);
+
+    // We need to send app url with the message so that Web Player knows which application sent
+    // a message.
+    var queryIndex = window.location.href.indexOf('?');
+    var appUrl = window.location.href.slice(0, queryIndex);
     epBridge = {
         send: function send(msg) {
+            msg.appUrl = appUrl;
             return parent.postMessage(msg, 'http://player.enplug.loc');
         }
     };
