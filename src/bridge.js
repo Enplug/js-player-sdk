@@ -70,20 +70,8 @@ try {
     // TODO(michal): generalize hardcoded player.enplug.loc URL.
     console.info('Initializing Web Development Player.')
 
-    // We need to send app url with the message so that Web Player knows which application sent
-    // a message.
-    console.debug('urls stuff');
-    var queryIndex = window.location.href.indexOf('?');
-    console.debug('queryindex', queryIndex);
-    var appUrl = window.location.href.slice(0, queryIndex);
-    console.debug('appurl', appUrl);
     epBridge = {
-        send: (msg) => {
-            console.debug('assigning appurl to msg', msg);
-            msg.appUrl = appUrl;
-            console.debug('assigned. sending msg', msg);
-            parent.postMessage(msg, 'http://player.enplug.loc');
-        }
+        send: (msg) => parent.postMessage(msg, 'http://player.enplug.loc')
     };
 
     window.addEventListener('message', function (event) {
@@ -156,6 +144,12 @@ export default {
      */
     send(message, noReturn = false) {
         var msg = Object.assign({}, message);
+
+        // We need to send app url with the message so that Web Player knows which application sent
+        // a message.
+        var queryIndex = window.location.href.indexOf('?');
+        var appUrl = window.location.href.slice(0, queryIndex);
+        msg.appUrl = appUrl;
 
         if (!msg.hasOwnProperty('service') || typeof msg.service !== 'string') {
             return Promise.reject(
