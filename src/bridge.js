@@ -64,7 +64,7 @@ try {
   );
   console.warn( error.stack );
 
-  // epBridge was not found. In such case, we assume that the application is iframed within 
+  // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
   // TODO(michal): generalize hardcoded player.enplug.loc URL.
   console.info('Initializing Web Development Player.')
@@ -75,6 +75,9 @@ try {
   window.addEventListener('message', function(event) {
     epBridge.receive(event.data);
   });
+
+
+  epBridge.send('PAIRING');
 }
 
 
@@ -92,6 +95,7 @@ epBridge.receive = function( json ) {
         token
       } = JSON.parse( json );
 
+    console.debug('Received', service, action, payload, meta, token);
 
     isError = ( action === 'error' );
 
