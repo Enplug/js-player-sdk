@@ -174,9 +174,7 @@ exports.default = {
 
         // We need to send app url with the message so that Web Player knows which application sent
         // a message.
-        var queryIndex = window.location.href.indexOf('?');
-        var appUrl = window.location.href.slice(0, queryIndex);
-        msg.appUrl = appUrl;
+        msg.appUrl = window.location.href;
 
         if (!msg.hasOwnProperty('service') || typeof msg.service !== 'string') {
             return _promise2.default.reject(new TypeError('[Enplug SDK] Bridge message requires a service property (string)'));
