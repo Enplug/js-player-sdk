@@ -59,12 +59,6 @@ try {
     }
 
 } catch (error) {
-    console.warn(
-        '[Enplug SDK] Error initializing SDK: ' +
-        '_epBridge does not exist on global object. Failing stack follows.'
-    );
-    console.warn(error.stack);
-
     // epBridge was not found. In such case, we assume that the application is iframed within
     // WebPlayer and communication has to proceed via posting and receiving messages between windows.
     // TODO(michal): generalize hardcoded player.enplug.loc URL.
