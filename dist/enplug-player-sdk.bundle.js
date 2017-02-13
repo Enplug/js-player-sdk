@@ -147,7 +147,7 @@ try {
 
     epBridge = {
         send: function send(msg) {
-            return parent.postMessage(msg, 'http://player.enplug.loc');
+            return parent.postMessage(msg, window.location.origin);
         }
     };
 

@@ -12,10 +12,9 @@ Message Formatting: (as JSON string)
 }
  */
 
-import {
-    processEvent
-} from './events';
+import {processEvent } from './events';
 import EnplugError from './errors/EnplugError';
+
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
@@ -65,7 +64,7 @@ try {
     console.info('Initializing Web Development Player.')
 
     epBridge = {
-        send: (msg) => parent.postMessage(msg, 'http://player.enplug.loc')
+        send: (msg) => parent.postMessage(msg, window.location.origin)
     };
 
     window.addEventListener('message', function (event) {
