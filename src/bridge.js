@@ -12,10 +12,9 @@ Message Formatting: (as JSON string)
 }
  */
 
-import {
-    processEvent
-} from './events';
+import {processEvent } from './events';
 import EnplugError from './errors/EnplugError';
+
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
@@ -62,10 +61,10 @@ try {
     // epBridge was not found. In such case, we assume that the application is iframed within
     // WebPlayer and communication has to proceed via posting and receiving messages between windows.
     // TODO(michal): generalize hardcoded player.enplug.loc URL.
-    console.info('Initializing Web Development Player.')
+    console.info('Initializing Web Development Player.');
 
     epBridge = {
-        send: (msg) => parent.postMessage(msg, 'http://player.enplug.loc')
+        send: (msg) => parent.postMessage(msg, window.location.origin.replace('apps', 'player'))
     };
 
     window.addEventListener('message', function (event) {
