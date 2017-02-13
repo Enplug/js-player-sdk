@@ -61,10 +61,10 @@ try {
     // epBridge was not found. In such case, we assume that the application is iframed within
     // WebPlayer and communication has to proceed via posting and receiving messages between windows.
     // TODO(michal): generalize hardcoded player.enplug.loc URL.
-    console.info('Initializing Web Development Player.')
+    console.info('Initializing Web Development Player. Origin:', parent.location.origin);
 
     epBridge = {
-        send: (msg) => parent.postMessage(msg, window.location.origin)
+        send: (msg) => parent.postMessage(msg, parent.location.origin)
     };
 
     window.addEventListener('message', function (event) {
