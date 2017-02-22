@@ -18,5 +18,10 @@ export default {
     return assetSender({
       action: 'get-list'
     });
+  },
+  getTheme() {
+    return assetSender({
+      action: 'get-theme'
+    });
   }
 };
