@@ -9,6 +9,11 @@ export default {
       action: 'get-next'
     });
   },
+  getAsset() {
+    return assetSender({
+      action: 'get-asset'
+    });
+  },
   getList() {
     return assetSender({
       action: 'get-list'
