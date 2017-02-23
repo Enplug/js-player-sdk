@@ -140,13 +140,16 @@ enplug.appStatus.canInterrupt.then(function( canInterrupt ) {
 ## Assets
 The Asset API for Enplug Player is the way to get assets previously created by Dashboard API.
 
+### `enplug.assets.getAsset() : Promise<Object>`
+Iterates through the list of asset values defined in the Dashboard part of your application for this display. Each time when called will get the next asset in the list of assets.
+Returns a promise that resolves to the single asset value (an Object).
+
 ### `enplug.assets.getList() : Promise<Array<Object>>`
 The getList function can be called to return an Array of all assets configured for given player.
 Returns a Promise that resolves to an Array of asset value objects.
 
-### `enplug.assets.getNext() : Promise<Object>`
-Iterates through the list of asset values defined in the Dashboard part of your application for this display. Each time when called will get the next asset in the list of assets.
-Returns a promise that resolves to the single asset value (an Object).
+### `.enplug.assets.getTheme() : Promise<Object>`
+Returns a promise that resolves to the theme (an Object) of the asset.
 
 ## Settings
 The Settings API can be used to retrieve various settings that were set by the user of the Enplug Player your application is currently playing on.
