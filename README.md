@@ -148,7 +148,7 @@ Returns a promise that resolves to the single asset value (an Object).
 The getList function can be called to return an Array of all assets configured for given player.
 Returns a Promise that resolves to an Array of asset value objects.
 
-### `.enplug.assets.getTheme() : Promise<Object>`
+### `enplug.assets.getTheme() : Promise<Object>`
 Returns a promise that resolves to the theme (an Object) of the asset.
 
 ## Settings
