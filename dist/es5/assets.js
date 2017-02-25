@@ -18,9 +18,19 @@ exports.default = {
       action: 'get-next'
     });
   },
+  getAsset: function getAsset() {
+    return assetSender({
+      action: 'get-asset'
+    });
+  },
   getList: function getList() {
     return assetSender({
       action: 'get-list'
+    });
+  },
+  getTheme: function getTheme() {
+    return assetSender({
+      action: 'get-theme'
     });
   }
 };
