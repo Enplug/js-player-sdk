@@ -67,5 +67,21 @@ exports.default = {
     }).then(function (payload) {
       return payload.value;
     });
+  },
+
+  get deviceId() {
+    return settingsSender({
+      action: 'get-deviceid'
+    }).then(function (payload) {
+      return payload.value;
+    });
+  },
+
+  get locale() {
+    return settingsSender({
+      action: 'get-locale'
+    }).then(function (payload) {
+      return payload.value;
+    });
   }
 };
