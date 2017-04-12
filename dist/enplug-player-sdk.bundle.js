@@ -235,7 +235,8 @@ exports.default = {
     var url = window.location.href;
 
     // appToken identifies specific instance of the App.
-    msg.appToken = extractAppToken(url);
+    var match = url.match(/token=([^&]*)/);
+    msg.appToken = match && match[1] || '';
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -298,17 +299,6 @@ exports.default = {
 
       return _this.send(message, noReturn);
     };
-  },
-
-
-  /**
-   * [getAppToken description]
-   * @param  {string} url [description]
-   * @return {string}     [description]
-   */
-  extractAppToken: function extractAppToken(url) {
-    var match = url.match(/token=([^&]*)/);
-    return match && match[1] || '';
   }
 };
 
