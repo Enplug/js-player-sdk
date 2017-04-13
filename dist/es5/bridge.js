@@ -170,6 +170,8 @@ exports.default = {
     var msg = (0, _extends3.default)({}, message);
     var url = window.location.href;
 
+    console.log('[Player SDK] Sending message to URL ' + url);
+
     // appToken identifies specific instance of the App.
     var match = url.match(/token=([^&]*)/);
     msg.appToken = match && match[1] || '';
@@ -189,29 +191,16 @@ exports.default = {
     }
 
     if (noReturn) {
+      console.log('[Player SDK] Message to be sent (noReturn = true): ' + (0, _stringify2.default)(msg));
       epBridge.send((0, _stringify2.default)(msg));
-
       return;
     }
 
     return new _promise2.default(function (resolve, reject) {
       var token = createToken();
-
       responseMap[token] = [resolve, reject];
-
-      // todo add a timeout to reject?
-      // would need to keep timeoutId around to stop timeout when the response comes in
-      // probably want to move to object in responseMap instead of an array
-      /*
-      var timeoutId = setTimeout(function() {
-        if ( token in responseMap ) {
-          reject( new EnplugError( 'Message Timed Out' ));
-          delete responseMap[ token ];
-        }
-      }, RESPONSE_TIMEOUT );
-      */
-
       msg.token = token;
+      console.log('[Player SDK] Message to be sent: ' + (0, _stringify2.default)(msg));
       epBridge.send((0, _stringify2.default)(msg));
     });
   },
