@@ -144,7 +144,7 @@ export default {
     console.log(`[Player SDK] Sending message to URL ${url}`);
 
     // appToken identifies specific instance of the App.
-    var match = url.match(/token=([^&]*)/);
+    var match = url.match(/token=([^&]*[a-z|0-9])/);
     msg.appToken = match && match[1] || '';
 
 
