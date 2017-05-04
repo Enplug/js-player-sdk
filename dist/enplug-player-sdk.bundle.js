@@ -170,7 +170,8 @@ try {
 // global fn for Java bridge to call
 epBridge.receive = function (json) {
   try {
-    var isError = void 0,
+    var isReload = void 0,
+        isError = void 0,
         _JSON$parse = JSON.parse(json),
         service = _JSON$parse.service,
         action = _JSON$parse.action,
@@ -180,14 +181,25 @@ epBridge.receive = function (json) {
         meta = _JSON$parse$meta === undefined ? {} : _JSON$parse$meta,
         token = _JSON$parse.token;
 
+
+    console.log('[Player SDK] Received message with action ' + action);
+
     isError = action === 'error';
+    isReload = action === 'reload';
 
     // todo make this less weird (not hacky)
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
+      console.error('[Player SDK] Error received: ' + payload.message, payload);
       // tweak payload to be the error object
       payload = new _EnplugError2.default(payload.message || '');
+    }
+
+    if (isReload) {
+      console.log('[Player SDK] App reload requested.');
+      window.location.reload();
+      return;
     }
 
     // if there is a token we can just resolve the promise and be done
@@ -196,7 +208,6 @@ epBridge.receive = function (json) {
     if (token && token in responseMap) {
       responseMap[token][isError ? 1 : 0](payload);
       delete responseMap[token];
-
       return;
     }
 

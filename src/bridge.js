@@ -80,6 +80,7 @@ try {
 epBridge.receive = function (json) {
   try {
     let
+      isReload,
       isError, {
         service,
         action,
@@ -88,14 +89,26 @@ epBridge.receive = function (json) {
         token
       } = JSON.parse(json);
 
+
+    console.log(`[Player SDK] Received message with action ${action}`);
+
     isError = (action === 'error');
+    isReload = action === 'reload';
 
     // todo make this less weird (not hacky)
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
+      console.error(`[Player SDK] Error received: ${payload.message}`, payload);
       // tweak payload to be the error object
       payload = new EnplugError(payload.message || '');
+    }
+
+
+    if (isReload) {
+      console.log(`[Player SDK] App reload requested.`);
+      window.location.reload();
+      return;
     }
 
     // if there is a token we can just resolve the promise and be done
@@ -104,7 +117,6 @@ epBridge.receive = function (json) {
     if (token && token in responseMap) {
       responseMap[token][isError ? 1 : 0](payload);
       delete responseMap[token];
-
       return;
     }
 
