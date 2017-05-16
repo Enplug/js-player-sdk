@@ -12,40 +12,46 @@ Message Formatting: (as JSON string)
 }
  */
 
-import {
-  processEvent
-} from './events';
+import { processEvent } from './events';
 import EnplugError from './errors/EnplugError';
 
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
 
-var epBridge,
-  // todo break token map and generator into own module
-  responseMap = Object.create(null),
-  hasOwn = (obj, name) => Object.prototype.hasOwnProperty.call(obj, name),
-  createToken = function () {
-    var token = Math.random().toString(36).substr(2);
+var epBridge = null;
+var responseMap = new Map();
 
-    if (token in responseMap) {
-      return createToken();
-    }
 
-    return token;
-  };
+/**
+ * Creates a unique token used to identify apprpriate message response function.
+ * @return {string} - A unique token.
+ */
+function createToken() {
+  var token = Math.random().toString(36).substr(2);
+  // Make sure a unique token is created. If created token already exists, create a different one.
+  if (responseMap.has(token)) {
+    return createToken();
+  }
+  return token;
+}
 
-// check for bridge existence
+
+
+
+// Check for the existence of the global bridge object. If it doesn't, create one so that it can
+// send and receive messages from the Web Player.
 try {
   let $global = Function('return this')(); // eslint-disable-line
 
-  if (hasOwn($global, '_epBridge')) {
-
+  // _epBridge exists: Java Player
+  if ($global.hasOwnProperty('_epBridge')) {
     console.log('[Enplug SDK] Creating bridge from standard implementation.');
     epBridge = $global._epBridge;
+  }
 
-  } else if (hasOwn($global, '_epBridgeSend')) {
-
+  // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
+  else if ($global.hasOwnProperty('_epBridgeSend')) {
     console.log('[Enplug SDK] Creating bridge from CEF implementation.');
     epBridge = $global._epBridge = {
       send(message) {
@@ -75,6 +81,7 @@ try {
 }
 
 
+
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
 // global fn for Java bridge to call
 epBridge.receive = function (json) {
@@ -89,11 +96,20 @@ epBridge.receive = function (json) {
         token
       } = JSON.parse(json);
 
-
     console.log(`[Player SDK] Received message with action ${action}`);
 
     isError = (action === 'error');
     isReload = action === 'reload';
+
+    // if there is a token we can just resolve the promise and be done
+    // if it was an error the payload has been transformed to an error
+    //    so we can just reject the promise with that error
+    if (token && responseMap.has(token)) {
+      let responseFunctions = responseMap.get(token);
+      responseFunctions[isError ? 1 : 0](payload);
+      responseMap.delete(token);
+      return;
+    }
 
     // todo make this less weird (not hacky)
     // if we pass more info in the payload this will
@@ -104,19 +120,9 @@ epBridge.receive = function (json) {
       payload = new EnplugError(payload.message || '');
     }
 
-
     if (isReload) {
       console.log(`[Player SDK] App reload requested.`);
       window.location.reload();
-      return;
-    }
-
-    // if there is a token we can just resolve the promise and be done
-    // if it was an error the payload has been transformed to an error
-    //    so we can just reject the promise with that error
-    if (token && token in responseMap) {
-      responseMap[token][isError ? 1 : 0](payload);
-      delete responseMap[token];
       return;
     }
 
@@ -186,12 +192,14 @@ export default {
 
     return new Promise(function (resolve, reject) {
       var token = createToken();
-      responseMap[token] = [resolve, reject];
+      responseMap.set(token, [resolve, reject]);
       msg.token = token;
+
       console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
       epBridge.send(JSON.stringify(msg));
     });
   },
+
 
   /**
    * A helper for creating a send function that automatically adds the "service" property
@@ -203,7 +211,6 @@ export default {
   senderForService(service) {
     return (message = {}, noReturn = false) => {
       message.service = service;
-
       return this.send(message, noReturn);
     };
   }

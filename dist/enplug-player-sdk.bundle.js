@@ -108,46 +108,48 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // todo finish reject timeout
 var RESPONSE_TIMEOUT = 60 * 1000;
 
-var epBridge,
+var epBridge = null;
+var responseMap = new Map();
 
-// todo break token map and generator into own module
-responseMap = Object.create(null),
-    hasOwn = function hasOwn(obj, name) {
-  return Object.prototype.hasOwnProperty.call(obj, name);
-},
-    createToken = function createToken() {
+/**
+ * Creates a unique token used to identify apprpriate message response function.
+ * @return {string} - A unique token.
+ */
+function createToken() {
   var token = Math.random().toString(36).substr(2);
-
-  if (token in responseMap) {
+  // Make sure a unique token is created. If created token already exists, create a different one.
+  if (responseMap.has(token)) {
     return createToken();
   }
-
   return token;
-};
+}
 
-// check for bridge existence
+// Check for the existence of the global bridge object. If it doesn't, create one so that it can
+// send and receive messages from the Web Player.
 try {
   (function () {
     var $global = Function('return this')(); // eslint-disable-line
 
-    if (hasOwn($global, '_epBridge')) {
-
+    // _epBridge exists: Java Player
+    if ($global.hasOwnProperty('_epBridge')) {
       console.log('[Enplug SDK] Creating bridge from standard implementation.');
       epBridge = $global._epBridge;
-    } else if (hasOwn($global, '_epBridgeSend')) {
-
-      console.log('[Enplug SDK] Creating bridge from CEF implementation.');
-      epBridge = $global._epBridge = {
-        send: function send(message) {
-          $global._epBridgeSend({
-            request: message,
-            persistent: false
-          });
-        }
-      };
-    } else {
-      epBridge = _epBridge;
     }
+
+    // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
+    else if ($global.hasOwnProperty('_epBridgeSend')) {
+        console.log('[Enplug SDK] Creating bridge from CEF implementation.');
+        epBridge = $global._epBridge = {
+          send: function send(message) {
+            $global._epBridgeSend({
+              request: message,
+              persistent: false
+            });
+          }
+        };
+      } else {
+        epBridge = _epBridge;
+      }
   })();
 } catch (error) {
   // epBridge was not found. In such case, we assume that the application is iframed within
@@ -187,6 +189,16 @@ epBridge.receive = function (json) {
     isError = action === 'error';
     isReload = action === 'reload';
 
+    // if there is a token we can just resolve the promise and be done
+    // if it was an error the payload has been transformed to an error
+    //    so we can just reject the promise with that error
+    if (token && responseMap.has(token)) {
+      var responseFunctions = responseMap.get(token);
+      responseFunctions[isError ? 1 : 0](payload);
+      responseMap.delete(token);
+      return;
+    }
+
     // todo make this less weird (not hacky)
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
@@ -199,15 +211,6 @@ epBridge.receive = function (json) {
     if (isReload) {
       console.log('[Player SDK] App reload requested.');
       window.location.reload();
-      return;
-    }
-
-    // if there is a token we can just resolve the promise and be done
-    // if it was an error the payload has been transformed to an error
-    //    so we can just reject the promise with that error
-    if (token && token in responseMap) {
-      responseMap[token][isError ? 1 : 0](payload);
-      delete responseMap[token];
       return;
     }
 
@@ -273,8 +276,9 @@ exports.default = {
 
     return new Promise(function (resolve, reject) {
       var token = createToken();
-      responseMap[token] = [resolve, reject];
+      responseMap.set(token, [resolve, reject]);
       msg.token = token;
+
       console.log('[Player SDK] Message to be sent: ' + JSON.stringify(msg));
       epBridge.send(JSON.stringify(msg));
     });
@@ -296,7 +300,6 @@ exports.default = {
       var noReturn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
       message.service = service;
-
       return _this.send(message, noReturn);
     };
   }
