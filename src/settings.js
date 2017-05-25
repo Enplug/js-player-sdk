@@ -1,4 +1,3 @@
-
 import bridge from './bridge';
 
 // todo populate from Java?
@@ -11,7 +10,7 @@ const
     FADE: 'FADE',
     NONE: 'NONE'
   },
-  settingsSender = bridge.senderForService( 'settings' );
+  settingsSender = bridge.senderForService('settings');
 
 var is4KCache = null;
 
@@ -22,14 +21,14 @@ export default {
   },
 
   get is4K() {
-    if ( is4KCache != null ) {
+    if (is4KCache != null) {
       return is4KCache;
     }
 
-    return ( is4KCache = settingsSender({
+    return (is4KCache = settingsSender({
       action: 'is4K'
-    }).then( function( payload ) {
-      return payload.value;
+    }).then(function (payload) {
+      return payload && payload.value ? payload.value : false;
     }));
   },
 
@@ -39,40 +38,40 @@ export default {
   get transitionType() {
     return settingsSender({
       action: 'transition-type'
-    }).then( function( payload ) {
-      return payload.value;
+    }).then(function (payload) {
+      return payload && payload.value ? payload.value : TRANSITIONS.NONE;
     });
   },
 
   hideWhitelabel() {
     return settingsSender({
       action: 'hide-whitelabel'
-    }).then( function( payload ) {
-      return payload.success;
+    }).then(function (payload) {
+      return payload && payload.success ? payload.success : true;
     });
   },
 
   get whitelabel() {
     return settingsSender({
       action: 'get-whitelabel'
-    }).then( function( payload ) {
-      return payload.value;
+    }).then(function (payload) {
+      return payload && payload.value ? payload.value : '';
     });
   },
-  
+
   get deviceId() {
     return settingsSender({
       action: 'get-deviceid'
-    }).then( function( payload ) {
-      return payload.value;
+    }).then(function (payload) {
+      return payload && payload.value ? payload.value : '';
     });
   },
-  
+
   get locale() {
     return settingsSender({
       action: 'get-locale'
-    }).then( function( payload ) {
-      return payload.value;
+    }).then(function (payload) {
+      return payload && payload.value ? payload.value : 'en';
     });
   }
 };
