@@ -108,22 +108,23 @@ try {
 // global fn for Java bridge to call
 epBridge.receive = function (json) {
   try {
-    var isReload = void 0,
-        isError = void 0,
-        _JSON$parse = JSON.parse(json),
-        service = _JSON$parse.service,
-        action = _JSON$parse.action,
-        _JSON$parse$payload = _JSON$parse.payload,
-        payload = _JSON$parse$payload === undefined ? {} : _JSON$parse$payload,
-        _JSON$parse$meta = _JSON$parse.meta,
-        meta = _JSON$parse$meta === undefined ? {} : _JSON$parse$meta,
-        token = _JSON$parse.token;
+    var data = {};
 
+    if (typeof json === 'string') {
+      data = JSON.parse(json);
+    } else {
+      data = json;
+    }
+
+    var isReload = data.action === 'reload';
+    var isError = data.action === 'error';
+    var service = data.service;
+    var action = data.action;
+    var payload = data.payload || {};
+    var meta = data.meta || {};
+    var token = data.token;
 
     console.log('[Player SDK] Received message with action ' + action);
-
-    isError = action === 'error';
-    isReload = action === 'reload';
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
@@ -181,7 +182,9 @@ exports.default = {
   send: function send(message) {
     var noReturn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-    var msg = (0, _extends3.default)({}, message);
+    var msg = (0, _extends3.default)({
+      isNewSdk: true
+    }, message);
     var url = window.location.href;
 
     console.log('[Player SDK] Sending message to URL ' + url);

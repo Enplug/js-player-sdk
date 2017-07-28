@@ -86,20 +86,24 @@ try {
 // global fn for Java bridge to call
 epBridge.receive = function (json) {
   try {
-    let
-      isReload,
-      isError, {
-        service,
-        action,
-        payload = {},
-        meta = {},
-        token
-      } = JSON.parse(json);
+    let data = {};
+
+    if (typeof json === 'string') {
+      data = JSON.parse(json);
+    } else {
+      data = json;
+    }
+
+    const isReload = data.action === 'reload';
+    const isError = data.action === 'error';
+    const service = data.service;
+    const action = data.action;
+    let payload = data.payload || {};
+    const meta = data.meta || {};
+    const token = data.token;
 
     console.log(`[Player SDK] Received message with action ${action}`);
 
-    isError = (action === 'error');
-    isReload = action === 'reload';
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
@@ -156,7 +160,9 @@ export default {
    * @returns {Promise|undefined}
    */
   send(message, noReturn = false) {
-    var msg = Object.assign({}, message);
+    var msg = Object.assign({
+      isNewSdk: true
+    }, message);
     var url = window.location.href;
 
     console.log(`[Player SDK] Sending message to URL ${url}`);
