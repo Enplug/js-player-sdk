@@ -37,6 +37,7 @@ exports.default = {
     return is4KCache = settingsSender({
       action: 'is4K'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting is4k: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : false;
     });
   },
@@ -48,6 +49,7 @@ exports.default = {
     return settingsSender({
       action: 'transition-type'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting transition: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : TRANSITIONS.NONE;
     });
   },
@@ -56,6 +58,7 @@ exports.default = {
     return settingsSender({
       action: 'hide-whitelabel'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting hide whitelabel: ' + (payload && payload.success));
       return payload && payload.success ? payload.success : true;
     });
   },
@@ -65,6 +68,7 @@ exports.default = {
     return settingsSender({
       action: 'get-whitelabel'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting whitelabel: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : '';
     });
   },
@@ -73,6 +77,7 @@ exports.default = {
     return settingsSender({
       action: 'get-deviceid'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting deviceId: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : '';
     });
   },
@@ -81,6 +86,7 @@ exports.default = {
     return settingsSender({
       action: 'get-locale'
     }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-locale: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : 'en';
     });
   }
