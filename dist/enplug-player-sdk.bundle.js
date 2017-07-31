@@ -188,7 +188,7 @@ epBridge.receive = function (json) {
     var meta = data.meta || {};
     var token = data.token;
 
-    console.log('[Player SDK] Received message with action ' + action);
+    console.log('[Player SDK] Received message with action ' + action, data);
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error

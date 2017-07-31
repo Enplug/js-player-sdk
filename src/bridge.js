@@ -102,7 +102,7 @@ epBridge.receive = function (json) {
     const meta = data.meta || {};
     const token = data.token;
 
-    console.log(`[Player SDK] Received message with action ${action}`);
+    console.log(`[Player SDK] Received message with action ${action}`, data);
 
 
     // if there is a token we can just resolve the promise and be done
