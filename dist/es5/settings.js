@@ -89,5 +89,23 @@ exports.default = {
       console.log('[Player SDK] Settings: Returning setting get-locale: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : 'en';
     });
+  },
+
+  get orientation() {
+    return settingsSender({
+      action: 'get-orientation'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-orientation: ' + (payload && payload.value));
+      return payload && payload.value;
+    });
+  },
+
+  get zoning() {
+    return settingsSender({
+      action: 'get-zoning-info'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-zoning-info: ' + (payload && payload.value));
+      return payload && payload.value;
+    });
   }
 };

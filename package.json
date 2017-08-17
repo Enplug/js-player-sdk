@@ -1,6 +1,6 @@
 {
   "name": "@enplug/player-sdk",
-  "version": "0.2.3",
+  "version": "0.3.7",
   "license": "MIT",
   "description": "The JavaScript SDK for Enplug Player Apps",
   "main": "index.js",
@@ -35,7 +35,7 @@
     "tdd": "nodemon -q -d 200 -i dist -w src -w tests -x 'npm test'",
     "dev": "npm-run-all compile -p watch tdd -c",
     "prerelease": "npm run compile",
-    "release": "npm version patch && npm run prerelease && npm publish"
+    "release": "npm run prerelease && npm publish"
   },
   "dependencies": {
     "babel-plugin-transform-runtime": "^6.9.0"
