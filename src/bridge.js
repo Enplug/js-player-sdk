@@ -21,6 +21,8 @@ const RESPONSE_TIMEOUT = (60 * 1000);
 
 var epBridge = null;
 var responseMap = new Map();
+var appToken = null;
+var delayedMessages = [];
 
 
 /**
@@ -102,8 +104,12 @@ epBridge.receive = function (json) {
     const meta = data.meta || {};
     const token = data.token;
 
-    console.log(`[Player SDK] Received message with action ${action}`, data);
+    console.debug(`[Player SDK] Received message with action ${action}`, data);
 
+    if (data && data.action === 'set-app-token') {
+      console.log(`[Player SDK] Storing appToken ${data.appToken}`);
+      appToken = data.appToken;
+    }
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
@@ -119,7 +125,7 @@ epBridge.receive = function (json) {
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
-      console.error(`[Player SDK] Error received: ${payload.message}`, payload);
+      console.log(`[Player SDK] Error received: ${payload.message}`, payload);
       // tweak payload to be the error object
       payload = new EnplugError(payload.message || '');
     }
@@ -165,12 +171,10 @@ export default {
     }, message);
     var url = window.location.href;
 
-    console.log(`[Player SDK] Sending message to URL ${url}`);
+    console.debug(`[Player SDK] Sending message to URL ${url} with appToken ${appToken}`);
 
     // appToken identifies specific instance of the App.
-    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-    msg.appToken = match && match[1] || '';
-
+    msg.appToken = appToken;
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.

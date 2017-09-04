@@ -110,6 +110,7 @@ var RESPONSE_TIMEOUT = 60 * 1000;
 
 var epBridge = null;
 var responseMap = new Map();
+var appToken = null;
 
 /**
  * Creates a unique token used to identify apprpriate message response function.
@@ -190,6 +191,13 @@ epBridge.receive = function (json) {
 
     console.log('[Player SDK] Received message with action ' + action, data);
 
+    if (data && data.action === 'set-app-token') {
+      console.log('[Player SDK] Storing appToken ' + data.appToken);
+      appToken = data.appToken;
+      sessionStorage.setItem('appToken', data.appToken);
+      localStorage.setItem('appToken', data.appToken);
+    }
+
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
     //    so we can just reject the promise with that error
@@ -204,7 +212,7 @@ epBridge.receive = function (json) {
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
-      console.error('[Player SDK] Error received: ' + payload.message, payload);
+      console.log('[Player SDK] Error received: ' + payload.message, payload);
       // tweak payload to be the error object
       payload = new _EnplugError2.default(payload.message || '');
     }
@@ -251,11 +259,11 @@ exports.default = {
     }, message);
     var url = window.location.href;
 
-    console.log('[Player SDK] Sending message to URL ' + url);
+    console.debug('[Player SDK] Sending message to URL ' + url + ' with appToken ' + appToken);
+    console.debug('[Player SDK] Session storage', sessionStorage);
 
     // appToken identifies specific instance of the App.
-    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-    msg.appToken = match && match[1] || '';
+    msg.appToken = sessionStorage.getItem('appToken');
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -768,6 +776,24 @@ exports.default = {
     }).then(function (payload) {
       console.log('[Player SDK] Settings: Returning setting get-locale: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : 'en';
+    });
+  },
+
+  get orientation() {
+    return settingsSender({
+      action: 'get-orientation'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-orientation: ' + (payload && payload.value));
+      return payload && payload.value;
+    });
+  },
+
+  get zoning() {
+    return settingsSender({
+      action: 'get-zoning-info'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-zoning-info: ' + (payload && payload.value));
+      return payload && payload.value;
     });
   }
 };
