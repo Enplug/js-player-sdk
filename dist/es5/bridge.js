@@ -4,10 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
-
-var _stringify2 = _interopRequireDefault(_stringify);
-
 var _promise = require('babel-runtime/core-js/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
@@ -15,6 +11,10 @@ var _promise2 = _interopRequireDefault(_promise);
 var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
+
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
 
 var _map = require('babel-runtime/core-js/map');
 
@@ -47,6 +47,7 @@ var RESPONSE_TIMEOUT = 60 * 1000;
 var epBridge = null;
 var responseMap = new _map2.default();
 var appToken = null;
+var delayedMessages = [];
 
 /**
  * Creates a unique token used to identify apprpriate message response function.
@@ -130,8 +131,15 @@ epBridge.receive = function (json) {
     if (data && data.action === 'set-app-token') {
       console.log('[Player SDK] Storing appToken ' + data.appToken);
       appToken = data.appToken;
-      sessionStorage.setItem('appToken', data.appToken);
-      localStorage.setItem('appToken', data.appToken);
+
+      if (delayedMessages.length) {
+        while (delayedMessages.length) {
+          var msg = delayedMessages.shift();
+          msg.appToken = appToken;
+          console.log('[Player SDK] Message to be sent: ' + (0, _stringify2.default)(msg));
+          epBridge.send((0, _stringify2.default)(msg));
+        }
+      }
     }
 
     // if there is a token we can just resolve the promise and be done
@@ -195,11 +203,10 @@ exports.default = {
     }, message);
     var url = window.location.href;
 
-    console.debug('[Player SDK] Sending message to URL ' + url + ' with appToken ' + appToken);
-    console.debug('[Player SDK] Session storage', sessionStorage);
+    console.log('[Player SDK] Sending message to URL ' + url + ' with appToken ' + appToken);
 
     // appToken identifies specific instance of the App.
-    msg.appToken = sessionStorage.getItem('appToken');
+    msg.appToken = appToken;
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -217,7 +224,11 @@ exports.default = {
 
     if (noReturn) {
       console.log('[Player SDK] Message to be sent (noReturn = true): ' + (0, _stringify2.default)(msg));
-      epBridge.send((0, _stringify2.default)(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        epBridge.send((0, _stringify2.default)(msg));
+      }
       return;
     }
 
@@ -226,8 +237,12 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      console.log('[Player SDK] Message to be sent: ' + (0, _stringify2.default)(msg));
-      epBridge.send((0, _stringify2.default)(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        console.log('[Player SDK] Message to be sent: ' + (0, _stringify2.default)(msg));
+        epBridge.send((0, _stringify2.default)(msg));
+      }
     });
   },
 

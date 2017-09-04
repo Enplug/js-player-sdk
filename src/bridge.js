@@ -104,11 +104,20 @@ epBridge.receive = function (json) {
     const meta = data.meta || {};
     const token = data.token;
 
-    console.debug(`[Player SDK] Received message with action ${action}`, data);
+    console.log(`[Player SDK] Received message with action ${action}`, data);
 
     if (data && data.action === 'set-app-token') {
       console.log(`[Player SDK] Storing appToken ${data.appToken}`);
       appToken = data.appToken;
+
+      if (delayedMessages.length) {
+        while (delayedMessages.length) {
+          const msg = delayedMessages.shift();
+          msg.appToken = appToken;
+          console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
+          epBridge.send(JSON.stringify(msg));
+        }
+      }
     }
 
     // if there is a token we can just resolve the promise and be done
@@ -171,7 +180,7 @@ export default {
     }, message);
     var url = window.location.href;
 
-    console.debug(`[Player SDK] Sending message to URL ${url} with appToken ${appToken}`);
+    console.log(`[Player SDK] Sending message to URL ${url} with appToken ${appToken}`);
 
     // appToken identifies specific instance of the App.
     msg.appToken = appToken;
@@ -196,7 +205,11 @@ export default {
 
     if (noReturn) {
       console.log(`[Player SDK] Message to be sent (noReturn = true): ${JSON.stringify(msg)}`);
-      epBridge.send(JSON.stringify(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        epBridge.send(JSON.stringify(msg));
+      }
       return;
     }
 
@@ -205,8 +218,12 @@ export default {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
-      epBridge.send(JSON.stringify(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
+        epBridge.send(JSON.stringify(msg));
+      }
     });
   },
 
