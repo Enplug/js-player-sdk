@@ -183,6 +183,10 @@ export default {
     console.log(`[Player SDK] Sending message to URL ${url} with appToken ${appToken}`);
 
     // appToken identifies specific instance of the App.
+    if (!appToken) {
+      var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
+      appToken = match && match[1] || '';
+    }
     msg.appToken = appToken;
 
     // We need to send app url with the message so that Web Player knows which application sent
