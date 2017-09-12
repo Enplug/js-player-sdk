@@ -22,6 +22,7 @@ const RESPONSE_TIMEOUT = (60 * 1000);
 var epBridge = null;
 var responseMap = new Map();
 var appToken = null;
+var isZoningApp = false;
 var delayedMessages = [];
 
 
@@ -44,6 +45,7 @@ function createToken() {
 // Check for the existence of the global bridge object. If it doesn't, create one so that it can
 // send and receive messages from the Web Player.
 try {
+  isZoningApp = !!window.location.href && !!window.location.href.indexOf('zoning=true');
   let $global = Function('return this')(); // eslint-disable-line
 
   // _epBridge exists: Java Player
@@ -222,7 +224,7 @@ export default {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      if (!appToken) {
+      if (isZoningApp && !appToken) {
         delayedMessages.push(msg);
       } else {
         console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
