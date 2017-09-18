@@ -21,6 +21,9 @@ const RESPONSE_TIMEOUT = (60 * 1000);
 
 var epBridge = null;
 var responseMap = new Map();
+var appToken = null;
+var isZoningApp = false;
+var delayedMessages = [];
 
 
 /**
@@ -42,17 +45,18 @@ function createToken() {
 // Check for the existence of the global bridge object. If it doesn't, create one so that it can
 // send and receive messages from the Web Player.
 try {
+  isZoningApp = !!window.location.href && window.location.href.indexOf('zoning=true') >= 0;
+  console.log(`[Player SDK] Zoning App detected: ${isZoningApp}`);
   let $global = Function('return this')(); // eslint-disable-line
 
   // _epBridge exists: Java Player
   if ($global.hasOwnProperty('_epBridge')) {
-    console.log('[Enplug SDK] Creating bridge from standard implementation.');
+    console.log('[Player SDK] Creating bridge from standard implementation.');
     epBridge = $global._epBridge;
   }
-
   // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
   else if ($global.hasOwnProperty('_epBridgeSend')) {
-    console.log('[Enplug SDK] Creating bridge from CEF implementation.');
+    console.log('[Player SDK] Creating bridge from CEF implementation.', $global._epBridge);
     epBridge = $global._epBridge = {
       send(message) {
         $global._epBridgeSend({
@@ -104,6 +108,19 @@ epBridge.receive = function (json) {
 
     console.log(`[Player SDK] Received message with action ${action}`, data);
 
+    if (data && data.action === 'set-app-token') {
+      console.log(`[Player SDK] Storing appToken ${data.appToken}`);
+      appToken = data.appToken;
+
+      if (delayedMessages.length) {
+        while (delayedMessages.length) {
+          const msg = delayedMessages.shift();
+          msg.appToken = appToken;
+          console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
+          epBridge.send(JSON.stringify(msg));
+        }
+      }
+    }
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
@@ -119,7 +136,7 @@ epBridge.receive = function (json) {
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
-      console.error(`[Player SDK] Error received: ${payload.message}`, payload);
+      console.log(`[Player SDK] Error received: ${payload.message}`, payload);
       // tweak payload to be the error object
       payload = new EnplugError(payload.message || '');
     }
@@ -136,7 +153,7 @@ epBridge.receive = function (json) {
     }
 
   } catch (err) {
-    console.error('[Enplug SDK] Error receiving and processing message in _epBridge.receive');
+    console.error('[Player SDK] Error receiving and processing message in _epBridge.receive');
     console.error(err.stack);
   }
 
@@ -165,12 +182,14 @@ export default {
     }, message);
     var url = window.location.href;
 
-    console.log(`[Player SDK] Sending message to URL ${url}`);
+    console.log(`[Player SDK] Sending message to URL ${url} with appToken ${appToken}`);
 
     // appToken identifies specific instance of the App.
-    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-    msg.appToken = match && match[1] || '';
-
+    if (!appToken) {
+      var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
+      appToken = match && match[1] || '';
+    }
+    msg.appToken = appToken;
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -180,19 +199,23 @@ export default {
 
     if (!msg.hasOwnProperty('service') || typeof msg.service !== 'string') {
       return Promise.reject(
-        new TypeError('[Enplug SDK] Bridge message requires a service property (string)')
+        new TypeError('[Player SDK] Bridge message requires a service property (string)')
       );
     }
 
     if (!msg.hasOwnProperty('action') || typeof msg.action !== 'string') {
       return Promise.reject(
-        new TypeError('[Enplug SDK] Bridge message requires an action property (string)')
+        new TypeError('[Player SDK] Bridge message requires an action property (string)')
       );
     }
 
     if (noReturn) {
       console.log(`[Player SDK] Message to be sent (noReturn = true): ${JSON.stringify(msg)}`);
-      epBridge.send(JSON.stringify(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        epBridge.send(JSON.stringify(msg));
+      }
       return;
     }
 
@@ -201,8 +224,13 @@ export default {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
-      epBridge.send(JSON.stringify(msg));
+      if (isZoningApp && !appToken) {
+        console.log(`[Player SDK] Sending message from an App inside Zoning: ${JSON.stringify(msg)}`, msg);
+        delayedMessages.push(msg);
+      } else {
+        console.log(`[Player SDK] Sending message from an App outside of Zoning: ${JSON.stringify(msg)}`, msg);
+        epBridge.send(JSON.stringify(msg));
+      }
     });
   },
 

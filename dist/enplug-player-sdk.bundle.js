@@ -110,6 +110,9 @@ var RESPONSE_TIMEOUT = 60 * 1000;
 
 var epBridge = null;
 var responseMap = new Map();
+var appToken = null;
+var isZoningApp = false;
+var delayedMessages = [];
 
 /**
  * Creates a unique token used to identify apprpriate message response function.
@@ -128,17 +131,18 @@ function createToken() {
 // send and receive messages from the Web Player.
 try {
   (function () {
+    isZoningApp = !!window.location.href && window.location.href.indexOf('zoning=true') >= 0;
+    console.log('[Player SDK] Zoning App detected: ' + isZoningApp);
     var $global = Function('return this')(); // eslint-disable-line
 
     // _epBridge exists: Java Player
     if ($global.hasOwnProperty('_epBridge')) {
-      console.log('[Enplug SDK] Creating bridge from standard implementation.');
+      console.log('[Player SDK] Creating bridge from standard implementation.');
       epBridge = $global._epBridge;
     }
-
     // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
     else if ($global.hasOwnProperty('_epBridgeSend')) {
-        console.log('[Enplug SDK] Creating bridge from CEF implementation.');
+        console.log('[Player SDK] Creating bridge from CEF implementation.', $global._epBridge);
         epBridge = $global._epBridge = {
           send: function send(message) {
             $global._epBridgeSend({
@@ -190,6 +194,20 @@ epBridge.receive = function (json) {
 
     console.log('[Player SDK] Received message with action ' + action, data);
 
+    if (data && data.action === 'set-app-token') {
+      console.log('[Player SDK] Storing appToken ' + data.appToken);
+      appToken = data.appToken;
+
+      if (delayedMessages.length) {
+        while (delayedMessages.length) {
+          var msg = delayedMessages.shift();
+          msg.appToken = appToken;
+          console.log('[Player SDK] Message to be sent: ' + JSON.stringify(msg));
+          epBridge.send(JSON.stringify(msg));
+        }
+      }
+    }
+
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
     //    so we can just reject the promise with that error
@@ -204,7 +222,7 @@ epBridge.receive = function (json) {
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
-      console.error('[Player SDK] Error received: ' + payload.message, payload);
+      console.log('[Player SDK] Error received: ' + payload.message, payload);
       // tweak payload to be the error object
       payload = new _EnplugError2.default(payload.message || '');
     }
@@ -220,7 +238,7 @@ epBridge.receive = function (json) {
       (0, _events.processEvent)(action, payload, meta);
     }
   } catch (err) {
-    console.error('[Enplug SDK] Error receiving and processing message in _epBridge.receive');
+    console.error('[Player SDK] Error receiving and processing message in _epBridge.receive');
     console.error(err.stack);
   }
 
@@ -251,11 +269,14 @@ exports.default = {
     }, message);
     var url = window.location.href;
 
-    console.log('[Player SDK] Sending message to URL ' + url);
+    console.log('[Player SDK] Sending message to URL ' + url + ' with appToken ' + appToken);
 
     // appToken identifies specific instance of the App.
-    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-    msg.appToken = match && match[1] || '';
+    if (!appToken) {
+      var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
+      appToken = match && match[1] || '';
+    }
+    msg.appToken = appToken;
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -264,16 +285,20 @@ exports.default = {
     msg.appUrl = appUrl;
 
     if (!msg.hasOwnProperty('service') || typeof msg.service !== 'string') {
-      return Promise.reject(new TypeError('[Enplug SDK] Bridge message requires a service property (string)'));
+      return Promise.reject(new TypeError('[Player SDK] Bridge message requires a service property (string)'));
     }
 
     if (!msg.hasOwnProperty('action') || typeof msg.action !== 'string') {
-      return Promise.reject(new TypeError('[Enplug SDK] Bridge message requires an action property (string)'));
+      return Promise.reject(new TypeError('[Player SDK] Bridge message requires an action property (string)'));
     }
 
     if (noReturn) {
       console.log('[Player SDK] Message to be sent (noReturn = true): ' + JSON.stringify(msg));
-      epBridge.send(JSON.stringify(msg));
+      if (!appToken) {
+        delayedMessages.push(msg);
+      } else {
+        epBridge.send(JSON.stringify(msg));
+      }
       return;
     }
 
@@ -282,8 +307,13 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      console.log('[Player SDK] Message to be sent: ' + JSON.stringify(msg));
-      epBridge.send(JSON.stringify(msg));
+      if (isZoningApp && !appToken) {
+        console.log('[Player SDK] Sending message from an App inside Zoning: ' + JSON.stringify(msg), msg);
+        delayedMessages.push(msg);
+      } else {
+        console.log('[Player SDK] Sending message from an App outside of Zoning: ' + JSON.stringify(msg), msg);
+        epBridge.send(JSON.stringify(msg));
+      }
     });
   },
 
@@ -768,6 +798,24 @@ exports.default = {
     }).then(function (payload) {
       console.log('[Player SDK] Settings: Returning setting get-locale: ' + (payload && payload.value));
       return payload && payload.value ? payload.value : 'en';
+    });
+  },
+
+  get orientation() {
+    return settingsSender({
+      action: 'get-orientation'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-orientation: ' + (payload && payload.value));
+      return payload && payload.value;
+    });
+  },
+
+  get zoning() {
+    return settingsSender({
+      action: 'get-zoning-info'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning setting get-zoning-info: ' + (payload && payload.value));
+      return payload && payload.value;
     });
   }
 };
