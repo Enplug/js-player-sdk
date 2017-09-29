@@ -196,16 +196,16 @@ epBridge.receive = function (json) {
 
     if (data && data.action === 'set-app-token') {
       console.log('[Player SDK] Storing appToken ' + data.appToken);
-      appToken = data.appToken;
+      // appToken = data.appToken;
 
-      if (delayedMessages.length) {
-        while (delayedMessages.length) {
-          var msg = delayedMessages.shift();
-          msg.appToken = appToken;
-          console.log('[Player SDK] Message to be sent: ' + JSON.stringify(msg));
-          epBridge.send(JSON.stringify(msg));
-        }
-      }
+      // if (delayedMessages.length) {
+      //   while (delayedMessages.length) {
+      //     const msg = delayedMessages.shift();
+      //     msg.appToken = appToken;
+      //     console.log(`[Player SDK] Message to be sent: ${JSON.stringify(msg)}`);
+      //     epBridge.send(JSON.stringify(msg));
+      //   }
+      // }
     }
 
     // if there is a token we can just resolve the promise and be done
@@ -307,13 +307,16 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      if (isZoningApp && !appToken) {
-        console.log('[Player SDK] Sending message from an App inside Zoning: ' + JSON.stringify(msg), msg);
-        delayedMessages.push(msg);
-      } else {
-        console.log('[Player SDK] Sending message from an App outside of Zoning: ' + JSON.stringify(msg), msg);
-        epBridge.send(JSON.stringify(msg));
-      }
+      console.log('[Player SDK] Sending message from an App outside of Zoning: ' + JSON.stringify(msg), msg);
+      epBridge.send(JSON.stringify(msg));
+
+      // if (isZoningApp && !appToken) {
+      //   console.log(`[Player SDK] Sending message from an App inside Zoning: ${JSON.stringify(msg)}`, msg);
+      //   delayedMessages.push(msg);
+      // } else {
+      //   console.log(`[Player SDK] Sending message from an App outside of Zoning: ${JSON.stringify(msg)}`, msg);
+      //   epBridge.send(JSON.stringify(msg));
+      // }
     });
   },
 
