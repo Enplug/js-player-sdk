@@ -194,20 +194,6 @@ epBridge.receive = function (json) {
 
     console.log('[Player SDK] Received message with action ' + action, data);
 
-    if (data && data.action === 'set-app-token') {
-      console.log('[Player SDK] Storing appToken ' + data.appToken);
-      appToken = data.appToken;
-
-      if (delayedMessages.length) {
-        while (delayedMessages.length) {
-          var msg = delayedMessages.shift();
-          msg.appToken = appToken;
-          console.log('[Player SDK] Message to be sent: ' + JSON.stringify(msg));
-          epBridge.send(JSON.stringify(msg));
-        }
-      }
-    }
-
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
     //    so we can just reject the promise with that error
@@ -307,18 +293,8 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-<<<<<<< HEAD
       console.log('[Player SDK] Sending message from an App outside of Zoning: ' + JSON.stringify(msg), msg);
       epBridge.send(JSON.stringify(msg));
-=======
-      if (isZoningApp && !appToken) {
-        console.log('[Player SDK] Sending message from an App inside Zoning: ' + JSON.stringify(msg), msg);
-        delayedMessages.push(msg);
-      } else {
-        console.log('[Player SDK] Sending message from an App outside of Zoning: ' + JSON.stringify(msg), msg);
-        epBridge.send(JSON.stringify(msg));
-      }
->>>>>>> 3b14b7b6e09f428eb9a95b6aa97e0de67fce1824
     });
   },
 
