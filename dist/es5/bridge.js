@@ -4,10 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
-
-var _stringify2 = _interopRequireDefault(_stringify);
-
 var _promise = require('babel-runtime/core-js/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
@@ -15,6 +11,10 @@ var _promise2 = _interopRequireDefault(_promise);
 var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
+
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
 
 var _map = require('babel-runtime/core-js/map');
 
@@ -130,6 +130,20 @@ epBridge.receive = function (json) {
 
     console.log('[Player SDK] Received message with action ' + action, data);
 
+    if (data && data.action === 'set-app-token') {
+      console.log('[Player SDK] Storing appToken ' + data.appToken);
+      appToken = data.appToken;
+
+      if (delayedMessages.length) {
+        while (delayedMessages.length) {
+          var msg = delayedMessages.shift();
+          msg.appToken = appToken;
+          console.log('[Player SDK] Message to be sent: ' + (0, _stringify2.default)(msg));
+          epBridge.send((0, _stringify2.default)(msg));
+        }
+      }
+    }
+
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
     //    so we can just reject the promise with that error
@@ -229,8 +243,18 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
+<<<<<<< HEAD
       console.log('[Player SDK] Sending message from an App outside of Zoning: ' + (0, _stringify2.default)(msg), msg);
       epBridge.send((0, _stringify2.default)(msg));
+=======
+      if (isZoningApp && !appToken) {
+        console.log('[Player SDK] Sending message from an App inside Zoning: ' + (0, _stringify2.default)(msg), msg);
+        delayedMessages.push(msg);
+      } else {
+        console.log('[Player SDK] Sending message from an App outside of Zoning: ' + (0, _stringify2.default)(msg), msg);
+        epBridge.send((0, _stringify2.default)(msg));
+      }
+>>>>>>> 3b14b7b6e09f428eb9a95b6aa97e0de67fce1824
     });
   },
 
