@@ -16,6 +16,10 @@ var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
 
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
 var _map = require('babel-runtime/core-js/map');
 
 var _map2 = _interopRequireDefault(_map);
@@ -43,6 +47,8 @@ Message Formatting: (as JSON string)
  */
 
 var RESPONSE_TIMEOUT = 60 * 1000;
+var VERSION = require('../package.json').version;
+var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
 var responseMap = new _map2.default();
@@ -68,17 +74,17 @@ function createToken() {
 try {
   (function () {
     isZoningApp = !!window.location.href && window.location.href.indexOf('zoning=true') >= 0;
-    console.log('[Player SDK] Zoning App detected: ' + isZoningApp);
+    console.log('[Player SDK: ' + VERSION + '] Zoning App detected: ' + isZoningApp);
     var $global = Function('return this')(); // eslint-disable-line
 
     // _epBridge exists: Java Player
     if ($global.hasOwnProperty('_epBridge')) {
-      console.log('[Player SDK] Creating bridge from standard implementation.');
+      console.log('[Player SDK: ' + VERSION + '] Creating bridge from standard implementation.');
       epBridge = $global._epBridge;
     }
     // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
     else if ($global.hasOwnProperty('_epBridgeSend')) {
-        console.log('[Player SDK] Creating bridge from CEF implementation.', $global._epBridge);
+        console.log('[Player SDK: ' + VERSION + '] Creating bridge from CEF implementation.', $global._epBridge);
         epBridge = $global._epBridge = {
           send: function send(message) {
             $global._epBridgeSend({
@@ -95,16 +101,72 @@ try {
   // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
   // TODO(michal): generalize hardcoded player.enplug.loc URL.
-  console.info('Initializing Web Development Player.');
+  console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
 
   epBridge = {
     send: function send(msg) {
-      return parent.postMessage(msg, '*');
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = (0, _getIterator3.default)(WHITELIST), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var whitelistedUrl = _step.value;
+
+          parent.postMessage(msg, whitelistedUrl);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
     }
   };
 
   window.addEventListener('message', function (event) {
-    epBridge.receive(event.data);
+    console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
+    var isTrusted = false;
+    var messageUrl = event.origin;
+
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = (0, _getIterator3.default)(WHITELIST), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var whitelistedUrl = _step2.value;
+
+        if (messageUrl.startsWith(whitelistedUrl)) {
+          isTrusted = true;
+        }
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    if (isTrusted) {
+      epBridge.receive(event.data);
+    }
   });
 }
 
@@ -128,7 +190,7 @@ epBridge.receive = function (json) {
     var meta = data.meta || {};
     var token = data.token;
 
-    console.log('[Player SDK] Received message with action ' + action, data);
+    console.log('[Player SDK: ' + VERSION + '] Received message with action ' + action, data);
 
     // if there is a token we can just resolve the promise and be done
     // if it was an error the payload has been transformed to an error
@@ -144,13 +206,13 @@ epBridge.receive = function (json) {
     // if we pass more info in the payload this will
     // need to be changed to not throw that data away
     if (isError) {
-      console.log('[Player SDK] Error received: ' + payload.message, payload);
+      console.log('[Player SDK: ' + VERSION + '] Error received: ' + payload.message, payload);
       // tweak payload to be the error object
       payload = new _EnplugError2.default(payload.message || '');
     }
 
     if (isReload) {
-      console.log('[Player SDK] App reload requested.');
+      console.log('[Player SDK: ' + VERSION + '] App reload requested.');
       window.location.reload();
       return;
     }
@@ -160,7 +222,7 @@ epBridge.receive = function (json) {
       (0, _events.processEvent)(action, payload, meta);
     }
   } catch (err) {
-    console.error('[Player SDK] Error receiving and processing message in _epBridge.receive');
+    console.error('[Player SDK: ' + VERSION + '] Error receiving and processing message in _epBridge.receive');
     console.error(err.stack);
   }
 
@@ -191,7 +253,7 @@ exports.default = {
     }, message);
     var url = window.location.href;
 
-    console.log('[Player SDK] Sending message to URL ' + url + ' with appToken ' + appToken);
+    console.log('[Player SDK: ' + VERSION + '] Sending message to URL ' + url + ' with appToken ' + appToken);
 
     // appToken identifies specific instance of the App.
     if (!appToken) {
@@ -207,15 +269,15 @@ exports.default = {
     msg.appUrl = appUrl;
 
     if (!msg.hasOwnProperty('service') || typeof msg.service !== 'string') {
-      return _promise2.default.reject(new TypeError('[Player SDK] Bridge message requires a service property (string)'));
+      return _promise2.default.reject(new TypeError('[Player SDK: ' + VERSION + '] Bridge message requires a service property (string)'));
     }
 
     if (!msg.hasOwnProperty('action') || typeof msg.action !== 'string') {
-      return _promise2.default.reject(new TypeError('[Player SDK] Bridge message requires an action property (string)'));
+      return _promise2.default.reject(new TypeError('[Player SDK: ' + VERSION + '] Bridge message requires an action property (string)'));
     }
 
     if (noReturn) {
-      console.log('[Player SDK] Message to be sent (noReturn = true): ' + (0, _stringify2.default)(msg));
+      console.log('[Player SDK: ' + VERSION + '] Message to be sent (noReturn = true): ' + (0, _stringify2.default)(msg));
       if (!appToken) {
         delayedMessages.push(msg);
       } else {
@@ -229,7 +291,7 @@ exports.default = {
       responseMap.set(token, [resolve, reject]);
       msg.token = token;
 
-      console.log('[Player SDK] Sending message from an App outside of Zoning: ' + (0, _stringify2.default)(msg), msg);
+      console.log('[Player SDK: ' + VERSION + '] Sending message from an App outside of Zoning: ' + (0, _stringify2.default)(msg), msg);
       epBridge.send((0, _stringify2.default)(msg));
     });
   },
