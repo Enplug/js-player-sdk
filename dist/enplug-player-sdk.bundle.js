@@ -1,76 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.enplug = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports={
-  "name": "@enplug/player-sdk",
-  "version": "0.3.8",
-  "license": "MIT",
-  "description": "The JavaScript SDK for Enplug Player Apps",
-  "main": "index.js",
-  "jsnext:main": "src/enplug.js",
-  "engines": {
-    "node": ">=6.1.0",
-    "npm": "^3.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Enplug/js-player-sdk"
-  },
-  "keywords": [
-    "enplug"
-  ],
-  "config": {
-    "bundle_output_name": "enplug-player-sdk.bundle.js",
-    "bundle_tests_output_name": "enplug-player-sdk-tests.bundle.js"
-  },
-  "scripts": {
-    "lint": "eslint .",
-    "clean": "rimraf 'dist' && mkdirp dist",
-    "precompile": "npm run clean",
-    "bundle": "browserify src/api.js -o dist/enplug-player-sdk.bundle.js -t [ babelify ] -s enplug",
-    "es5": "babel src --plugins transform-runtime --out-dir dist/es5",
-    "compile": "npm-run-all -s bundle es5",
-    "watch:bundle": "watchify src/api.js -o dist/enplug-player-sdk.bundle.js -t [ babelify ] -s enplug",
-    "watch:es5": "babel src --watch --plugins transform-runtime --out-dir dist/es5",
-    "watch": "npm-run-all -p watch:bundle watch:es5",
-    "test": "tape -r babel-register 'tests/**/*.js' | tap-spec",
-    "test:bundle": "globify 'tests/**/*.js' -o dist/enplug-player-sdk-tests.bundle.js -t [ babelify ]",
-    "tdd": "nodemon -q -d 200 -i dist -w src -w tests -x 'npm test'",
-    "dev": "npm-run-all compile -p watch tdd -c",
-    "prerelease": "npm run compile",
-    "release": "npm run prerelease && npm publish"
-  },
-  "dependencies": {
-    "babel-plugin-transform-runtime": "^6.9.0"
-  },
-  "devDependencies": {
-    "@enplug/babel-preset": "^1.0.1",
-    "@enplug/eslint-config": "^1.0.0",
-    "babel-cli": "^6.9.0",
-    "babel-eslint": "^6.0.4",
-    "babel-istanbul": "^0.8.0",
-    "babel-register": "^6.7.2",
-    "babelify": "^7.3.0",
-    "browserify": "^13.0.0",
-    "eslint": "^3.12.2",
-    "eslint-loader": "^1.6.1",
-    "globify": "^1.2.1",
-    "nodemon": "^1.9.2",
-    "npm-run-all": "^1.8.0",
-    "rimraf": "^2.5.2",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.5.1",
-    "watchify": "^3.7.0"
-  },
-  "eslintConfig": {
-    "extends": "@enplug/eslint-config"
-  },
-  "babel": {
-    "presets": [
-      "@enplug/babel-preset"
-    ]
-  }
-}
-
-},{}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -111,7 +39,7 @@ exports.settings = settings;
 exports.assets = assets;
 exports.playRecorder = playRecorder;
 
-},{"./enplug.js":5}],3:[function(require,module,exports){
+},{"./enplug.js":4}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -149,7 +77,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":4}],4:[function(require,module,exports){
+},{"./bridge":3}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -179,7 +107,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // todo finish reject timeout
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = require('../package.json').version;
+var VERSION = '0.3.8-dev14';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
@@ -230,76 +158,74 @@ try {
       }
   })();
 } catch (error) {
-  // epBridge was not found. In such case, we assume that the application is iframed within
-  // WebPlayer and communication has to proceed via posting and receiving messages between windows.
-  // TODO(michal): generalize hardcoded player.enplug.loc URL.
-  console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
+  (function () {
+    // epBridge was not found. In such case, we assume that the application is iframed within
+    // WebPlayer and communication has to proceed via posting and receiving messages between windows.
+    console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
+    var destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{3})/);
+    var destination = destinationMatch && destinationMatch[1];
 
-  epBridge = {
-    send: function send(msg) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
+    epBridge = {
+      send: function send(msg) {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          for (var _iterator = WHITELIST[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var whitelistedUrl = _step.value;
+
+            if (destination === whitelistedUrl) {
+              parent.postMessage(msg, destination);
+            }
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', function (event) {
+      console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator = WHITELIST[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var whitelistedUrl = _step.value;
+        for (var _iterator2 = WHITELIST[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var whitelistedUrl = _step2.value;
 
-          parent.postMessage(msg, whitelistedUrl);
+          if (event.origin.startsWith(whitelistedUrl)) {
+            epBridge.receive(event.data);
+          }
         }
       } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
-    }
-  };
-
-  window.addEventListener('message', function (event) {
-    console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
-    var isTrusted = false;
-    var messageUrl = event.origin;
-
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = WHITELIST[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var whitelistedUrl = _step2.value;
-
-        if (messageUrl.startsWith(whitelistedUrl)) {
-          isTrusted = true;
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    if (isTrusted) {
-      epBridge.receive(event.data);
-    }
-  });
+    });
+  })();
 }
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
@@ -449,7 +375,7 @@ exports.default = {
   }
 };
 
-},{"../package.json":1,"./errors/EnplugError":6,"./events":7}],5:[function(require,module,exports){
+},{"./errors/EnplugError":5,"./events":6}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -501,7 +427,7 @@ exports.settings = _settings2.default;
 exports.assets = _assets2.default;
 exports.playRecorder = _playRecorder2.default;
 
-},{"./assets":3,"./events":7,"./notifications":10,"./play-recorder":11,"./settings":12,"./status":13}],6:[function(require,module,exports){
+},{"./assets":2,"./events":6,"./notifications":9,"./play-recorder":10,"./settings":11,"./status":12}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -540,7 +466,7 @@ EnplugError.prototype = Object.create(Error.prototype, {
 // export the constructor
 exports.default = EnplugError;
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -576,7 +502,7 @@ exports.default = events;
 exports.eventProcessor = eventProcessor;
 exports.processEvent = processEvent;
 
-},{"./lib/event-emitter":8,"./lib/event-transform":9}],8:[function(require,module,exports){
+},{"./lib/event-emitter":7,"./lib/event-transform":8}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -681,7 +607,7 @@ var typeCheckArgs = function typeCheckArgs(eventName, handler) {
  * @returns {EventEmitter} -- a factory for creating an event emitter like object
  */
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -752,7 +678,7 @@ exports.default = function () {
   };
 };
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -780,7 +706,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":4}],11:[function(require,module,exports){
+},{"./bridge":3}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -818,7 +744,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":4}],12:[function(require,module,exports){
+},{"./bridge":3}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -931,7 +857,7 @@ exports.default = {
   }
 };
 
-},{"./bridge":4}],13:[function(require,module,exports){
+},{"./bridge":3}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1032,5 +958,5 @@ exports.default = {
   }
 };
 
-},{"./bridge":4,"./events":7}]},{},[2])(2)
+},{"./bridge":3,"./events":6}]},{},[1])(1)
 });

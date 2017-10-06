@@ -47,7 +47,7 @@ Message Formatting: (as JSON string)
  */
 
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = require('../package.json').version;
+var VERSION = '0.3.8-dev14';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
@@ -98,76 +98,74 @@ try {
       }
   })();
 } catch (error) {
-  // epBridge was not found. In such case, we assume that the application is iframed within
-  // WebPlayer and communication has to proceed via posting and receiving messages between windows.
-  // TODO(michal): generalize hardcoded player.enplug.loc URL.
-  console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
+  (function () {
+    // epBridge was not found. In such case, we assume that the application is iframed within
+    // WebPlayer and communication has to proceed via posting and receiving messages between windows.
+    console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
+    var destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{3})/);
+    var destination = destinationMatch && destinationMatch[1];
 
-  epBridge = {
-    send: function send(msg) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
+    epBridge = {
+      send: function send(msg) {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          for (var _iterator = (0, _getIterator3.default)(WHITELIST), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var whitelistedUrl = _step.value;
+
+            if (destination === whitelistedUrl) {
+              parent.postMessage(msg, destination);
+            }
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', function (event) {
+      console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator = (0, _getIterator3.default)(WHITELIST), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var whitelistedUrl = _step.value;
+        for (var _iterator2 = (0, _getIterator3.default)(WHITELIST), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var whitelistedUrl = _step2.value;
 
-          parent.postMessage(msg, whitelistedUrl);
+          if (event.origin.startsWith(whitelistedUrl)) {
+            epBridge.receive(event.data);
+          }
         }
       } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
-    }
-  };
-
-  window.addEventListener('message', function (event) {
-    console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
-    var isTrusted = false;
-    var messageUrl = event.origin;
-
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = (0, _getIterator3.default)(WHITELIST), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var whitelistedUrl = _step2.value;
-
-        if (messageUrl.startsWith(whitelistedUrl)) {
-          isTrusted = true;
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    if (isTrusted) {
-      epBridge.receive(event.data);
-    }
-  });
+    });
+  })();
 }
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */

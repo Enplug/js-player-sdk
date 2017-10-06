@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = require('../package.json').version;
+const VERSION = '0.3.8-dev14';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
@@ -79,29 +79,26 @@ try {
 } catch (error) {
   // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
-  // TODO(michal): generalize hardcoded player.enplug.loc URL.
   console.info(`[Player SDK: ${VERSION}] Initializing Web Development Player.`);
+  const destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{3})/);
+  const destination = destinationMatch && destinationMatch[1];
 
   epBridge = {
     send: (msg) => {
       for (let whitelistedUrl of WHITELIST) {
-        parent.postMessage(msg, whitelistedUrl);
+        if (destination === whitelistedUrl) {
+          parent.postMessage(msg, destination);
+        }
       }
     }
   };
 
   window.addEventListener('message', function (event) {
     console.log(`[Player SDK: ${VERSION}] Received message from ${event.origin}`, event);
-    let isTrusted = false;
-    let messageUrl = event.origin;
-
     for (let whitelistedUrl of WHITELIST) {
-      if (messageUrl.startsWith(whitelistedUrl)) {
-        isTrusted = true;
+      if (event.origin.startsWith(whitelistedUrl)) {
+        epBridge.receive(event.data);
       }
-    }
-    if (isTrusted) {
-      epBridge.receive(event.data);
     }
   });
 }
