@@ -80,7 +80,7 @@ try {
   // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
   console.info(`[Player SDK: ${VERSION}] Initializing Web Development Player.`);
-  const destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{3})/);
+  const destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
   const destination = destinationMatch && destinationMatch[1];
 
   epBridge = {
