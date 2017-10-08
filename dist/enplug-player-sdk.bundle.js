@@ -107,7 +107,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // todo finish reject timeout
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.3.8-dev14';
+var VERSION = '0.4.0';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
@@ -162,7 +162,7 @@ try {
     // epBridge was not found. In such case, we assume that the application is iframed within
     // WebPlayer and communication has to proceed via posting and receiving messages between windows.
     console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
-    var destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{3})/);
+    var destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
     var destination = destinationMatch && destinationMatch[1];
 
     epBridge = {
