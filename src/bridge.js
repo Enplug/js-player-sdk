@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.4.0';
+const VERSION = '0.4.3';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
@@ -28,7 +28,6 @@ var WHITELIST = [
 
 var epBridge = null;
 var responseMap = new Map();
-var appToken = null;
 var isZoningApp = false;
 var delayedMessages = [];
 
@@ -73,20 +72,22 @@ try {
       }
     };
   } else {
-    epBridge = _epBridge;
+    epBridge =  _epBridge;
   }
 
 } catch (error) {
   // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
   console.info(`[Player SDK: ${VERSION}] Initializing Web Development Player.`);
-  const destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
-  const destination = destinationMatch && destinationMatch[1];
 
   epBridge = {
     send: (msg) => {
+      const destinationMatch = window.location.href.match(/origin=(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
+      const destination = destinationMatch && destinationMatch[1];
+      console.log(`[Player SDK: ${VERSION}] Validating destination ${destination} with the whitelist`, destination);
       for (let whitelistedUrl of WHITELIST) {
         if (destination === whitelistedUrl) {
+          console.log(`[Player SDK: ${VERSION}] Whitelist match found. Posting message.`, msg, destination);
           parent.postMessage(msg, destination);
         }
       }
@@ -187,14 +188,11 @@ export default {
     }, message);
     var url = window.location.href;
 
-    console.log(`[Player SDK: ${VERSION}] Sending message to URL ${url} with appToken ${appToken}`);
+    console.log(`[Player SDK: ${VERSION}] Sending message from URL ${url}`);
 
     // appToken identifies specific instance of the App.
-    if (!appToken) {
-      var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-      appToken = match && match[1] || '';
-    }
-    msg.appToken = appToken;
+    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
+    msg.appToken = match && match[1] || '';
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -216,11 +214,7 @@ export default {
 
     if (noReturn) {
       console.log(`[Player SDK: ${VERSION}] Message to be sent (noReturn = true): ${JSON.stringify(msg)}`);
-      if (!appToken) {
-        delayedMessages.push(msg);
-      } else {
-        epBridge.send(JSON.stringify(msg));
-      }
+      epBridge.send(JSON.stringify(msg));
       return;
     }
 

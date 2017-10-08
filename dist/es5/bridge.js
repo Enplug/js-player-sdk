@@ -47,12 +47,11 @@ Message Formatting: (as JSON string)
  */
 
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.4.0';
+var VERSION = '0.4.2';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
 var responseMap = new _map2.default();
-var appToken = null;
 var isZoningApp = false;
 var delayedMessages = [];
 
@@ -98,74 +97,74 @@ try {
       }
   })();
 } catch (error) {
-  (function () {
-    // epBridge was not found. In such case, we assume that the application is iframed within
-    // WebPlayer and communication has to proceed via posting and receiving messages between windows.
-    console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
-    var destinationMatch = window.location.href.match(/(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
-    var destination = destinationMatch && destinationMatch[1];
+  // epBridge was not found. In such case, we assume that the application is iframed within
+  // WebPlayer and communication has to proceed via posting and receiving messages between windows.
+  console.info('[Player SDK: ' + VERSION + '] Initializing Web Development Player.');
 
-    epBridge = {
-      send: function send(msg) {
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-          for (var _iterator = (0, _getIterator3.default)(WHITELIST), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var whitelistedUrl = _step.value;
-
-            if (destination === whitelistedUrl) {
-              parent.postMessage(msg, destination);
-            }
-          }
-        } catch (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
-            }
-          } finally {
-            if (_didIteratorError) {
-              throw _iteratorError;
-            }
-          }
-        }
-      }
-    };
-
-    window.addEventListener('message', function (event) {
-      console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
+  epBridge = {
+    send: function send(msg) {
+      var destinationMatch = window.location.href.match(/origin=(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
+      var destination = destinationMatch && destinationMatch[1];
+      console.log('[Player SDK: ' + VERSION + '] Validating destination ' + destination + ' with the whitelist', destination);
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
 
       try {
-        for (var _iterator2 = (0, _getIterator3.default)(WHITELIST), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var whitelistedUrl = _step2.value;
+        for (var _iterator = (0, _getIterator3.default)(WHITELIST), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var whitelistedUrl = _step.value;
 
-          if (event.origin.startsWith(whitelistedUrl)) {
-            epBridge.receive(event.data);
+          if (destination === whitelistedUrl) {
+            console.log('[Player SDK: ' + VERSION + '] Whitelist match found. Posting message.', msg, destination);
+            parent.postMessage(msg, destination);
           }
         }
       } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
+        _didIteratorError = true;
+        _iteratorError = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
           }
         } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
+          if (_didIteratorError) {
+            throw _iteratorError;
           }
         }
       }
-    });
-  })();
+    }
+  };
+
+  window.addEventListener('message', function (event) {
+    console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = (0, _getIterator3.default)(WHITELIST), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var whitelistedUrl = _step2.value;
+
+        if (event.origin.startsWith(whitelistedUrl)) {
+          epBridge.receive(event.data);
+        }
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+  });
 }
 
 /*eslint no-implicit-globals: "off", no-unused-vars: "off" */
@@ -251,14 +250,11 @@ exports.default = {
     }, message);
     var url = window.location.href;
 
-    console.log('[Player SDK: ' + VERSION + '] Sending message to URL ' + url + ' with appToken ' + appToken);
+    console.log('[Player SDK: ' + VERSION + '] Sending message from URL ' + url);
 
     // appToken identifies specific instance of the App.
-    if (!appToken) {
-      var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
-      appToken = match && match[1] || '';
-    }
-    msg.appToken = appToken;
+    var match = url.match(/apptoken=([^&]*[a-z|0-9])/);
+    msg.appToken = match && match[1] || '';
 
     // We need to send app url with the message so that Web Player knows which application sent
     // a message.
@@ -276,11 +272,7 @@ exports.default = {
 
     if (noReturn) {
       console.log('[Player SDK: ' + VERSION + '] Message to be sent (noReturn = true): ' + (0, _stringify2.default)(msg));
-      if (!appToken) {
-        delayedMessages.push(msg);
-      } else {
-        epBridge.send((0, _stringify2.default)(msg));
-      }
+      epBridge.send((0, _stringify2.default)(msg));
       return;
     }
 
