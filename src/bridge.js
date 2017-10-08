@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.3.8-dev14';
+const VERSION = '0.3.8';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
