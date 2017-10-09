@@ -95,9 +95,9 @@ try {
   };
 
   window.addEventListener('message', function (event) {
-    console.log(`[Player SDK: ${VERSION}] Received message from ${event.origin}`, event);
     for (let whitelistedUrl of WHITELIST) {
       if (event.origin.startsWith(whitelistedUrl)) {
+        console.log(`[Player SDK: ${VERSION}] Received message from ${event.origin}`, event);
         epBridge.receive(event.data);
       }
     }
