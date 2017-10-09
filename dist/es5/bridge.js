@@ -47,7 +47,7 @@ Message Formatting: (as JSON string)
  */
 
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.4.2';
+var VERSION = '0.4.4';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
@@ -71,31 +71,29 @@ function createToken() {
 // Check for the existence of the global bridge object. If it doesn't, create one so that it can
 // send and receive messages from the Web Player.
 try {
-  (function () {
-    isZoningApp = !!window.location.href && window.location.href.indexOf('zoning=true') >= 0;
-    console.log('[Player SDK: ' + VERSION + '] Zoning App detected: ' + isZoningApp);
-    var $global = Function('return this')(); // eslint-disable-line
+  isZoningApp = !!window.location.href && window.location.href.indexOf('zoning=true') >= 0;
+  console.log('[Player SDK: ' + VERSION + '] Zoning App detected: ' + isZoningApp);
+  var $global = Function('return this')(); // eslint-disable-line
 
-    // _epBridge exists: Java Player
-    if ($global.hasOwnProperty('_epBridge')) {
-      console.log('[Player SDK: ' + VERSION + '] Creating bridge from standard implementation.');
-      epBridge = $global._epBridge;
+  // _epBridge exists: Java Player
+  if ($global.hasOwnProperty('_epBridge')) {
+    console.log('[Player SDK: ' + VERSION + '] Creating bridge from standard implementation.');
+    epBridge = $global._epBridge;
+  }
+  // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
+  else if ($global.hasOwnProperty('_epBridgeSend')) {
+      console.log('[Player SDK: ' + VERSION + '] Creating bridge from CEF implementation.', $global._epBridge);
+      epBridge = $global._epBridge = {
+        send: function send(message) {
+          $global._epBridgeSend({
+            request: message,
+            persistent: false
+          });
+        }
+      };
+    } else {
+      epBridge = _epBridge;
     }
-    // _epBridge doesn't exist but _epBridgeSend exists: Windows (CEF) Player
-    else if ($global.hasOwnProperty('_epBridgeSend')) {
-        console.log('[Player SDK: ' + VERSION + '] Creating bridge from CEF implementation.', $global._epBridge);
-        epBridge = $global._epBridge = {
-          send: function send(message) {
-            $global._epBridgeSend({
-              request: message,
-              persistent: false
-            });
-          }
-        };
-      } else {
-        epBridge = _epBridge;
-      }
-  })();
 } catch (error) {
   // epBridge was not found. In such case, we assume that the application is iframed within
   // WebPlayer and communication has to proceed via posting and receiving messages between windows.
@@ -137,7 +135,6 @@ try {
   };
 
   window.addEventListener('message', function (event) {
-    console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
@@ -147,6 +144,7 @@ try {
         var whitelistedUrl = _step2.value;
 
         if (event.origin.startsWith(whitelistedUrl)) {
+          console.log('[Player SDK: ' + VERSION + '] Received message from ' + event.origin, event);
           epBridge.receive(event.data);
         }
       }
