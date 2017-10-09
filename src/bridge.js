@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.4.4';
+const VERSION = '0.4.5';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
@@ -95,6 +95,11 @@ try {
   };
 
   window.addEventListener('message', function (event) {
+    // Prevent unnencessary loops/CPU usage if we're sure the request did not come from Enplug's server.
+    // This is necessary to limit the influence of 3rd party websites which post messages multiple times per second.
+    if (!event.origin.startsWith('https://player.enplug.')) {
+      return;
+    }
     for (let whitelistedUrl of WHITELIST) {
       if (event.origin.startsWith(whitelistedUrl)) {
         console.log(`[Player SDK: ${VERSION}] Received message from ${event.origin}`, event);

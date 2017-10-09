@@ -107,7 +107,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // todo finish reject timeout
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.4.4';
+var VERSION = '0.4.5';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
 
 var epBridge = null;
@@ -195,6 +195,11 @@ try {
   };
 
   window.addEventListener('message', function (event) {
+    // Prevent unnencessary loops/CPU usage if we're sure the request did not come from Enplug's server.
+    // This is necessary to limit the influence of 3rd party websites which post messages multiple times per second.
+    if (!event.origin.startsWith('https://player.enplug.')) {
+      return;
+    }
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
