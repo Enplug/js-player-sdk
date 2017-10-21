@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.4.8';
+const VERSION = '0.4.10';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
@@ -90,7 +90,7 @@ try {
     send: (msg) => {
       const destinationMatch = window.location.href.match(/origin=(https?\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
       const destination = destinationMatch && destinationMatch[1];
-      console.log(`[Player SDK: ${VERSION}] Validating destination ${destination} with the whitelist.`, destination, whitelist);
+      console.log(`[Player SDK: ${VERSION}] Validating destination ${destination} with the whitelist.`, destination);
       for (let whitelistedUrl of WHITELIST) {
         if (destination === whitelistedUrl) {
           console.log(`[Player SDK: ${VERSION}] Whitelist match found. Posting message.`, msg, destination);
@@ -103,9 +103,6 @@ try {
   window.addEventListener('message', function (event) {
     // Prevent unnencessary loops/CPU usage if we're sure the request did not come from Enplug's server.
     // This is necessary to limit the influence of 3rd party websites which post messages multiple times per second.
-    if (!event.origin.startsWith('https://player.enplug.')) {
-      return;
-    }
     for (let whitelistedUrl of WHITELIST) {
       if (event.origin.startsWith(whitelistedUrl)) {
         console.log(`[Player SDK: ${VERSION}] Received message from ${event.origin}`, event);

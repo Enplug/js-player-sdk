@@ -47,7 +47,7 @@ Message Formatting: (as JSON string)
  */
 
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.4.8';
+var VERSION = '0.4.10';
 var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com', 'http://dashboard.enplug.loc', 'https://dashboard.enplug.loc', 'https://dashboard.enplug.in', 'https://dashboard.enplug.com', 'https://apps.enplug.in', 'https://apps.enplug.com'];
 
 var epBridge = null;
@@ -103,7 +103,7 @@ try {
     send: function send(msg) {
       var destinationMatch = window.location.href.match(/origin=(https?\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
       var destination = destinationMatch && destinationMatch[1];
-      console.log('[Player SDK: ' + VERSION + '] Validating destination ' + destination + ' with the whitelist.', destination, whitelist);
+      console.log('[Player SDK: ' + VERSION + '] Validating destination ' + destination + ' with the whitelist.', destination);
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -137,9 +137,6 @@ try {
   window.addEventListener('message', function (event) {
     // Prevent unnencessary loops/CPU usage if we're sure the request did not come from Enplug's server.
     // This is necessary to limit the influence of 3rd party websites which post messages multiple times per second.
-    if (!event.origin.startsWith('https://player.enplug.')) {
-      return;
-    }
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
