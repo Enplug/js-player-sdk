@@ -107,8 +107,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // todo finish reject timeout
 var RESPONSE_TIMEOUT = 60 * 1000;
-var VERSION = '0.4.5';
-var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com'];
+var VERSION = '0.4.7';
+var WHITELIST = ['https://player.enplug.loc', 'https://player.enplug.in', 'https://player.enplug.com', 'http://dashboard.enplug.loc', 'https://dashboard.enplug.loc', 'https://dashboard.enplug.in', 'https://dashboard.enplug.com', 'https://apps.enplug.in', 'https://apps.enplug.com'];
 
 var epBridge = null;
 var responseMap = new Map();

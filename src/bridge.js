@@ -19,11 +19,17 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.4.5';
+const VERSION = '0.4.7';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
-  'https://player.enplug.com'
+  'https://player.enplug.com',
+  'http://dashboard.enplug.loc',
+  'https://dashboard.enplug.loc',
+  'https://dashboard.enplug.in',
+  'https://dashboard.enplug.com',
+  'https://apps.enplug.in',
+  'https://apps.enplug.com'
 ];
 
 var epBridge = null;
