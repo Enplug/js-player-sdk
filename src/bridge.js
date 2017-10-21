@@ -19,7 +19,7 @@ import EnplugError from './errors/EnplugError';
 
 // todo finish reject timeout
 const RESPONSE_TIMEOUT = (60 * 1000);
-const VERSION = '0.4.7';
+const VERSION = '0.4.8';
 var WHITELIST = [
   'https://player.enplug.loc',
   'https://player.enplug.in',
@@ -88,9 +88,9 @@ try {
 
   epBridge = {
     send: (msg) => {
-      const destinationMatch = window.location.href.match(/origin=(https\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
+      const destinationMatch = window.location.href.match(/origin=(https?\:\/\/[a-z]*\.[a-z]*\.[a-z]{2,3})/);
       const destination = destinationMatch && destinationMatch[1];
-      console.log(`[Player SDK: ${VERSION}] Validating destination ${destination} with the whitelist`, destination);
+      console.log(`[Player SDK: ${VERSION}] Validating destination ${destination} with the whitelist.`, destination, whitelist);
       for (let whitelistedUrl of WHITELIST) {
         if (destination === whitelistedUrl) {
           console.log(`[Player SDK: ${VERSION}] Whitelist match found. Posting message.`, msg, destination);
