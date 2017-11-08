@@ -5,8 +5,9 @@ const playRecSender = bridge.senderForService( 'play-recorder' );
 
 // note play duration is in seconds
 export default {
-  report( referenceId, playDuration, additionalInfo = '' ) {
+  report( assetId, referenceId, playDuration, additionalInfo = '' ) {
     var payload = {
+      assetId,
       referenceId,
       playDuration
     };
