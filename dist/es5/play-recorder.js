@@ -14,10 +14,11 @@ var playRecSender = _bridge2.default.senderForService('play-recorder');
 
 // note play duration is in seconds
 exports.default = {
-  report: function report(referenceId, playDuration) {
-    var additionalInfo = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+  report: function report(assetId, referenceId, playDuration) {
+    var additionalInfo = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
 
     var payload = {
+      assetId: assetId,
       referenceId: referenceId,
       playDuration: playDuration
     };
