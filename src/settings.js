@@ -33,6 +33,15 @@ export default {
     }));
   },
 
+  get all() {
+    return settingsSender({
+      action: 'get-all'
+    }).then(function (payload) {
+      console.log('[Player SDK] Settings: Returning all settings: ' + (payload));
+      return payload;
+    });
+  },
+
   // todo cache this
   // if I'm remembering right when this changes the whole player is restarted
   // so it is safe to assume this will not change at run-time
